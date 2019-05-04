@@ -6,13 +6,9 @@ use Data::Dumper;
 use FindBin qw($Bin);
 use lib "$Bin/../lib/";
 use FASTQ::Reader;
-use Path::Class;
 
-my $file = FASTQ::Reader->new(
-	filename => "$Bin/test.fastq",
-);
-my $line = $file->get_something();
-	say "<<$line>>";
+my $o = FASTQ::Reader->new(filename => "$Bin/test.fastq");
+print while readline $o->fh;
 
 # Test general settings for the module
 #my $file = FASTQ::Reader->new(
