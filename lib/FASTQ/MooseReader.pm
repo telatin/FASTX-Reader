@@ -3,6 +3,7 @@ use 5.014;
 use Term::ANSIColor qw(:constants);
 use warnings;
 
+# ABSTRACT: FASTQ reader using Moose
 use Moose;
 use Data::Dumper;
 use Path::Class;
@@ -10,6 +11,7 @@ use Carp qw(confess);
 
 has message => (is => 'ro', isa => 'Str');
 has status =>  (is => 'ro', isa => 'Int');
+
 has debug        => (
     is => 'rw',
     isa => 'Bool'

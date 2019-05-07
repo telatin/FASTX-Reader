@@ -1,10 +1,10 @@
 use 5.012;
 use warnings;
-#use Carp qw(cluck confess);
+use Carp qw(cluck confess);
 package FASTQ::Parser;
-#$FASTQ::Parser = 0.00a;
-
-#ABSTRACT: An object oriented FASTX (FASTA and FASTQ) parser not depending on larger modules
+$FASTQ::Parser::VERSION = '0.01';
+$FASTQ::Parser::AUTHOR = 'Fabrizio Levorin';
+#ABSTRACT: *Internal test* code for non-Moose file reader;
 
 sub new {
     my ($class, $args) = @_;
@@ -27,7 +27,7 @@ sub _find_sequence {
 	my $self = shift;
 
 	# apro il file in lettura
-	open my $fh, '<:encoding(UTF-8)', $self->{file} || die "Could not open file '$self->{file}' $!\n";
+	open my $fh, '<:encoding(UTF-8)', $self->{file} || confess "Could not open file '$self->{file}' $!\n";
 
 	# Hash in cui memorizzo le sequenze, la chiave sarà il nome della sequenza e come valori
 	# -seq	-> sequenza

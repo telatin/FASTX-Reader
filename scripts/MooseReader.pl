@@ -8,6 +8,7 @@ use lib "$Bin/../lib/";
 use FASTQ::MooseReader;
 
 
+
 my ($opt_1, $opt_2) = @ARGV;
 my $file1 = $opt_1 // "$Bin/test.fastq";
 my $file2 = $opt_2 // "$Bin/test2.fastq";
@@ -24,12 +25,3 @@ while (my $seq = $o1->getFastqRead()) {
   my $pair = $o2->getFastqRead();
   say color('red'), $counter, color('reset'), "\t",$seq->{name}, ' - ', $pair->{name};
 }
-# Test general settings for the module
-#my $file = FASTQ::Reader->new(
-#	filepath => $input,
-#);
-#my $input = file("$Bin/test.fastq");
-
-#while (my $line = $file->process_file) {
-#	say $line;
-#}

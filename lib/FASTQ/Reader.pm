@@ -1,31 +1,93 @@
 package FASTQ::Reader;
 use 5.014;
-use Term::ANSIColor qw(:constants);
+
 use warnings;
 
+$FASTQ::Reader::VERSION = '0.01';
+#ABSTRACT: Internal test code for non-Moose file reader;
 
-use Data::Dumper;
-use Path::Class;
+
 use Carp qw(confess);
 
 sub new {
+    # INstantiate object
     my ($class, $args) = @_;
-    say Dumper $class;
-    say Dumper $args;
+
     my $self = {
         filename  => $args->{filename},
     };
-    open my $fh, '<', $self->{filename} or die $!;
+
+    # Check file readability
+    open my $fh,  '<:encoding(UTF-8)', $self->{filename} or confess "Unable to read file ", $self->{filename}, ": ", $!, "\n";
     my $object = bless $self, $class;
 
-
-
+    # Initialize auxiliary array for getRead
+    $object->{aux} = [undef];
     $object->{fh} = $fh;
     return $object;
 }
 
 
+sub getRead {
+  my $self   = shift;
+  #my ($fh, $aux) = @_;
+  my $fh = $self->{fh};
+  my $aux = $self->{aux};
+  my $return;
+  @$aux = [undef, 0] if (!(@$aux));	# remove deprecated 'defined'
+  return if ($aux->[1]);
+  if (!defined($aux->[0])) {
+      while (<$fh>) {
+          chomp;
+          if (substr($_, 0, 1) eq '>' || substr($_, 0, 1) eq '@') {
+              $aux->[0] = $_;
+              last;
+          }
+      }
+      if (!defined($aux->[0])) {
+          $aux->[1] = 1;
+          return;
+      }
+  }
+  my $name = /^.(\S+)/? $1 : '';
+  my $comm = /^.\S+\s+(.*)/? $1 : ''; # retain "comment"
+  my $seq = '';
+  my $c;
+  $aux->[0] = undef;
+  while (<$fh>) {
+      chomp;
+      $c = substr($_, 0, 1);
+      last if ($c eq '>' || $c eq '@' || $c eq '+');
+      $seq .= $_;
+  }
+  $aux->[0] = $_;
+  $aux->[1] = 1 if (!defined($aux->[0]));
+  $return->{name} = $name;
+  $return->{seq} = $seq;
+  $self->{counter}++;
+  return $return if ($c ne '+');
+  my $qual = '';
+  while (<$fh>) {
+      chomp;
+      $qual .= $_;
+      if (length($qual) >= length($seq)) {
+          $aux->[0] = undef;
+          $return->{name} = $name;
+          $return->{seq} = $seq;
+          $return->{comment} = $comm;
+          $return->{qual} = $qual;
+          #$self->{counter}+=100;
+          return $return;
+      }
+  }
+  $aux->[1] = 1;
+  $return->{name} = $name;
+  $return->{seq} = $seq;
+  $return->{comment} = $comm;
+  $self->{counter}++;
+  return $return;
 
+}
 
 
 
@@ -51,6 +113,7 @@ sub getFastqRead {
       $seq_object->{comments} = $comments;
       $seq_object->{seq} = $seq;
       $seq_object->{qual} = $qual;
+      $self->{counter}++;
 
     } else {
       # Return error (corrupted FASTQ)
@@ -72,14 +135,25 @@ sub getFastqRead {
   return $seq_object;
 }
 
-sub _debug_get {
-    my $this = shift;
-    my $line = '<undef>';
-
-    $line = readline($this->fh);
-
-    return $line;
-
+sub getFileFormat {
+  my ($filename) = shift;
+  open my $f, '<:encoding(UTF-8)', "$filename" || confess "Unable to read $filename\n$!\n";
+  my $first = readline($f);
+  if (substr($first, 0,1) eq '>') {
+    #should be FASTA
+    return 'fasta';
+  } elsif (substr($first, 0, 1) eq '@') {
+    #should be fastq
+    readline($f);
+    my $sep = readline($f);
+    if ( substr($sep, 0, 1) eq '+' ) {
+      #second check for fastq
+      return 'fastq';
+    }
+  } else {
+    #unknown format
+    return undef;
+  }
 }
 
 
