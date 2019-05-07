@@ -3,39 +3,42 @@ use 5.014;
 use Term::ANSIColor qw(:constants);
 use warnings;
 
-
+use Moose;
 use Data::Dumper;
 use Path::Class;
 use Carp qw(confess);
 
-sub new {
-    my ($class, $args) = @_;
-    say Dumper $class;
-    say Dumper $args;
-    my $self = {
-        filename  => $args->{filename},
-    };
-    open my $fh, '<', $self->{filename} or die $!;
-    my $object = bless $self, $class;
+has message => (is => 'ro', isa => 'Str');
+has status =>  (is => 'ro', isa => 'Int');
+has debug        => (
+    is => 'rw',
+    isa => 'Bool'
+);
+
+has verbose      => (
+    is => 'rw',
+    isa => 'Bool'
+);
 
 
+has filename => (is => 'ro', isa => 'Str', required => 1);
+    has fh => (is => 'rw', isa => 'FileHandle', lazy => 1, builder => '_build_fh');
+    #                                           ~~~~~~~~~
 
-    $object->{fh} = $fh;
-    return $object;
-}
-
-
-
-
+    sub _build_fh {
+        my ($self) = @_;
+        open my $fh, '<', $self->filename or die $!;
+        return $fh
+    }
 
 
 sub getFastqRead {
   my $self   = shift;
   my $seq_object = undef;
-  my $header = readline($self->{fh});
-  my $seq    = readline($self->{fh});
-  my $check  = readline($self->{fh});
-  my $qual   = readline($self->{fh});
+  my $header = readline($self->fh);
+  my $seq    = readline($self->fh);
+  my $check  = readline($self->fh);
+  my $qual   = readline($self->fh);
 
   # Check 4 lines were found (FASTQ)
   return undef unless (defined $qual);
