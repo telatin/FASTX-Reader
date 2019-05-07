@@ -2,12 +2,12 @@
 use 5.012;
 use strict;
 use warnings;
-
-use lib '../lib';
+use FindBin qw($Bin);
+use lib "$Bin/../lib";
 use FASTQ::Parser;
 
 
-my $file = 'test.fasta';
+my $file = "$Bin/test.fasta";
 my $fasta_parser = FASTQ::Parser->new({file => $file});
 
 my $hr_seq = $fasta_parser->get_sequences;
