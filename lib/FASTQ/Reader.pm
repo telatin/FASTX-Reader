@@ -32,7 +32,7 @@ has filename => (is => 'ro', isa => 'Str', required => 1);
     }
 
 
-sub getRead {
+sub getFastqRead {
   my $self   = shift;
   my $seq_object = undef;
   my $header = readline($self->fh);

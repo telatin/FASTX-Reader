@@ -17,9 +17,9 @@ print "READ FILE 1: $file1\n";
 print "READ FILE 2: $file1\n";
 
 my $counter = 0;
-while (my $seq = $o1->getRead()) {
+while (my $seq = $o1->getFastqRead()) {
   $counter++;
-  my $pair = $o2->getRead();
+  my $pair = $o2->getFastqRead();
   say color('red'), $counter, color('reset'), "\t",$seq->{name}, ' - ', $pair->{name};
 }
 # Test general settings for the module
