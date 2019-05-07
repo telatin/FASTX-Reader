@@ -5,12 +5,12 @@ use Data::Dumper;
 
 use FindBin qw($Bin);
 use lib "$Bin/../lib/";
-use FASTQ::Reader;
+use FASTQ::MooseReader;
 
 my $file1 = "$Bin/test.fastq";
 my $file2 = "$Bin/test2.fastq";
-my $o1 = FASTQ::Reader->new({filename => "$file1"});
-my $o2 = FASTQ::Reader->new({filename => "$file2"});
+my $o1 = FASTQ::Reader->new(filename => "$file1");
+my $o2 = FASTQ::Reader->new(filename => "$file2");
 
 
 print "READ FILE 1: $file1\n";
