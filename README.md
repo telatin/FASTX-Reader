@@ -5,6 +5,8 @@
 [![Tests](https://img.shields.io/badge/Tests-Grid-1abc9c.svg)](https://www.cpantesters.org/distro/F/FASTX-Reader.html)
 ### An OOP Perl module to parse FASTA and FASTQ files
 
+This is a package built using Heng Li's _readfq()_ subroutine ([link](https://github.com/lh3/readfq)).
+
 For updated documentation, please visit *[Meta::CPAN](https://metacpan.org/pod/FASTX::Reader)*.
 
 ### Short synopsis
