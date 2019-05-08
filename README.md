@@ -19,3 +19,7 @@ while (my $seq = $fasta_reader->getRead() ) {
   print $seq->{name}, "\t", $seq->{seq}, "\t", $seq->{qual}, "\n";
 }
 ```
+
+### Contributors
+- Andrea Telatin
+- Fabrizio Levorin
