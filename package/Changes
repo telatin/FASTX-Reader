@@ -1,8 +1,9 @@
-This is the changelog for FASTQ::Parser. Version prior to v 0.1 are preliminary (alpha) release, not to be used in production.
-APIs *will* change with v 0.1
+This is the changelog for FASTX::Reader. Version prior to v 0.1 are preliminary (alpha) release, not to be used in production.
+APIs *will likely change* with the release of the first stable release (v 0.1).
 
-0.02	2019-05-06
-	* Minor updates in the POD documentation
+0.02	2019-05-07
+	* Reader parses STDIN
+	* Updated documentation
 
 0.01	2019-05-05
 	* Initial release of a working parser

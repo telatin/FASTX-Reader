@@ -17,13 +17,20 @@ push(@ARGV,"$Bin/test.fastq", "$Bin/test.fasta" )
 
 foreach my $input_file (@ARGV) {
   # Skip non existing files
-  if ( not -e "$input_file" ) {
+  if ( not -e "$input_file" and "$input_file" ne 'STDIN') {
     say STDERR color('red'), "] Skipping: $input_file (not exists)", color('reset');
     next;
   } else {
+    my $seq_reader;
+    if ($input_file eq 'STDIN') {
+      say STDERR color('bold'), 'Reading STDIN', color('reset');
+      $seq_reader = FASTX::Reader->new();
+    } else {
+      $seq_reader = FASTX::Reader->new({filename => "$input_file"});
+    }
     # Parse the existing files (no check on file type?)
     say STDERR color('yellow'), "] Reading: $input_file", color('reset');
-    my $seq_reader = FASTX::Reader->new({filename => "$input_file"});
+
     my $counter = 0;
     while (my $seq = $seq_reader->getRead()) {
       $counter++;
@@ -50,11 +57,32 @@ If no arguments are supplied, it will parse two test files contained in the scri
 
 =head1 NOTES
 
-The printed sequences can be slightly different from the input file as the header will be {name}{space}{comments}, but any white space (including a tab) could be the
+The printed sequences can be slightly different from the input file as the header will be C<{name}{space}{comments}>, but any white space (including a tab) could be the
 comment separator
 
-=head1 AUTHOR
+=head1 WEBSITES
 
-Andrea Telatin, 2019
+=over 4
+
+=item L<https://github.com/telatin/FASTQ-Parser>
+
+
+The B<GitHub> repository for this module
+
+=item L<https://metacpan.org/pod/FASTX::Reader>
+
+The B<MetaCPAN> page for this module
+
+=back
+
+=head1 AUTHORS
+
+=over 4
+
+=item Andrea Telatin
+
+=item Fabrizio Levorin
+
+=back
 
 =cut
