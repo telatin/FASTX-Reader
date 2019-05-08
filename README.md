@@ -9,6 +9,18 @@ This is a package built using Heng Li's _readfq()_ subroutine ([link](https://gi
 
 For updated documentation, please visit *[Meta::CPAN](https://metacpan.org/pod/FASTX::Reader)*.
 
+### Installation
+
+With _CPAN minus_:
+```
+cpanm FASTX::Reader
+```
+
+If you don't have _CPAN minus_, you can install it with:
+```
+cpan App::cpanminus
+```
+
 ### Short synopsis
 
 ```perl
