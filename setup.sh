@@ -1,5 +1,5 @@
 #!/bin/bash
-cd package
+#cd package
 cpanm Dist::Zilla
 dzil authordeps --missing | cpanm
 dzil listdeps --missing | cpanm
