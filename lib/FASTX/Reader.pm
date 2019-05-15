@@ -3,14 +3,8 @@ use 5.014;
 use warnings;
 use Carp qw(confess);
 
-$FASTX::Reader::VERSION = '0.06';
-#ABSTRACT: A lightweight FASTA and FASTQ reader based on Heng Li's parser.
-
-
-=head1 NAME
-
-B<FASTX::Reader> - a lightweight module to parse FASTA and FASTQ files, using Heng Li's
-readfq() method L<https://github.com/lh3/readfq>, packaged in an object oriented parser.
+$FASTX::Reader::VERSION = '0.07';
+#ABSTRACT: A lightweight module to parse FASTA and FASTQ files, using Heng Li's _readfq()_ method L<https://github.com/lh3/readfq>, packaged in an object oriented parser.
 
 =head1 SYNOPSIS
 
@@ -25,8 +19,6 @@ readfq() method L<https://github.com/lh3/readfq>, packaged in an object oriented
 
 =head1 METHODS
 
-=cut
-
 
 =head2 new()
 
@@ -40,6 +32,7 @@ To read from STDIN either pass C<{{STDIN}}> as filename, or don't pass a filenam
   my $seq_from_stdin = FASTX::Reader->();
 
 =cut
+
 sub new {
     # Instantiate object
     my ($class, $args) = @_;
