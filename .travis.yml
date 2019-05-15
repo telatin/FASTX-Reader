@@ -6,5 +6,4 @@ perl:
 sudo: false
 install:
   - "source ./setup.sh"
-before_script: cd package
 script: "dzil test --verbose"
