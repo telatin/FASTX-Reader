@@ -17,6 +17,10 @@ $FASTX::Reader::VERSION = '0.07';
     print $seq->{name}, "\t", $seq->{seq}, "\t", $seq->{qual}, "\n";
   }
 
+=head2 BUILD TEST
+
+=for html <a href="https://travis-ci.org/telatin/FASTQ-Parser"><img src="https://travis-ci.org/telatin/FASTQ-Parser.svg?branch=master"></a>
+
 =head1 METHODS
 
 
