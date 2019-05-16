@@ -3,7 +3,7 @@ use 5.014;
 use warnings;
 use Carp qw(confess);
 
-$FASTX::Reader::VERSION = '0.08';
+$FASTX::Reader::VERSION = '0.09';
 #ABSTRACT: A lightweight module to parse FASTA and FASTQ files, based on Heng Li's readfq() method, packaged in an object oriented parser.
 
 =head1 SYNOPSIS
