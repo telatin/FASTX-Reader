@@ -4,7 +4,7 @@ use FindBin qw($Bin);
 use Test::More;
 
 use_ok 'FASTX::Reader';
-my $seq = "$Bin/../scripts/test.fasta";
+my $seq = "$Bin/../data/test.fastq";
 
 # Check required input file
 if (! -e $seq) {
@@ -13,11 +13,9 @@ if (! -e $seq) {
 }
 
 my $data = FASTX::Reader->new({ filename => "$seq" });
-$seq = $data->getRead();
-my $copy = $seq->{seq};
-ok(length($copy) >0 , 'Received a string as sequence');
-$copy =~s/[ACGTNacgtn]//g;
-ok(length($copy) == 0, 'Sequence does not contain unexcpected chars');
 
+while (my $read = $data->getFastqRead() ) {
+	ok( length($read->{qual}) eq length($read->{seq}), "[FASTQ ALT PARSER] Ok: got sequence and quality");	
+}
 
 done_testing();

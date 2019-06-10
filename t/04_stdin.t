@@ -11,10 +11,10 @@ my $data = FASTX::Reader->new();
 
 my $seq = $data->getRead({  filename => '{{STDIN}}' });
 my $copy = $seq->{seq};
-ok(length($copy) >0 , 'Received a string as sequence');
+ok(length($copy) >0 , '[STDIN] Received a string as sequence');
 $copy =~s/[ACGTNacgtn]//g;
-ok(length($copy) == 0, 'Sequence does not contain unexcpected chars');
-ok(length($seq->{seq}) == length($seq->{qual}), 'Sequence and quality length are the same');
+ok(length($copy) == 0, '[STDIN] Sequence does not contain unexcpected chars');
+ok(length($seq->{seq}) == length($seq->{qual}), '[STDIN] Sequence and quality length are the same');
 
 done_testing();
 

@@ -4,7 +4,7 @@ use FindBin qw($Bin);
 use Test::More;
 
 use_ok 'FASTX::Reader';
-my $seq = "$Bin/../scripts/test.fastq";
+my $seq = "$Bin/../data/compressed.fasta.gz";
 
 # Check required input file
 if (! -e $seq) {
@@ -19,9 +19,9 @@ $seq = $data->getRead();
 
 # Check seq for unexpected chars (legally all IUPAC chars are allowed, but in the given example they are not expected)
 my $copy = $seq->{seq};
-ok(length($copy) >0 , 'Received a string as sequence');
+my $len = length($copy);
+ok( $len > 0 , "[FASTA.GZ] Received a string as sequence, $len bp long");
 $copy =~s/[ACGTNacgtn]//g;
-ok(length($copy) == 0, 'Sequence does not contain unexcpected chars');
-ok(length($seq->{seq}) == length($seq->{qual}), 'Sequence and quality length are the same');
+ok(length($copy) == 0, '[FASTA.GZ] Sequence does not contain unexcpected chars');
 
 done_testing();
