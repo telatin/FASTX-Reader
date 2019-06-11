@@ -5,7 +5,8 @@ use Test::More tests => 2;
 
 use_ok 'FASTX::Reader';
 my $seq = "$Bin/../data/test.fastq";
-#SKIP if seq not found
+
+#SKIP if seq not found, but expects 2 test
 SKIP: {
     skip "$seq not found\n", 1 if (! -e "$seq");
     my $data = FASTX::Reader->new({ filename => "$seq" });

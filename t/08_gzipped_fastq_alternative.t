@@ -15,7 +15,7 @@ if (! -e $seq) {
 my $data = FASTX::Reader->new({ filename => "$seq" });
 
 # Retrieve first sequence
-$seq = $data->getRead();
+$seq = $data->getFastqRead();
 
 # Check seq for unexpected chars (legally all IUPAC chars are allowed, but in the given example they are not expected)
 my $copy = $seq->{seq};

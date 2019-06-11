@@ -2,8 +2,10 @@ use strict;
 use warnings;
 use FindBin qw($Bin);
 use Test::More;
+use FASTX::Reader;
 
-use_ok 'FASTX::Reader';
+# TEST: Retrieves sequences from a test FASTA file
+
 my $seq = "$Bin/../data/test.fasta";
 
 # Check required input file
