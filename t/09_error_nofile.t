@@ -19,5 +19,5 @@ my $eval = eval {
  1;
 };
 
-ok(!defined$eval, "Did not read a file");
+ok(!defined $eval, "Did not read a file");
 done_testing();

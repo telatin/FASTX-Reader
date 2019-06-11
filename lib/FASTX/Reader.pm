@@ -278,17 +278,19 @@ to retain I<sequence comments>.
 
 See: L<readfq repository|https://github.com/telatin/readfq>
 
+=item B<Fabrizio Levorin>
+
+has contributed to the prototyping of this module
+
 =back
 
-=head1 CONTRIBUTORS
+=head1 SEE ALSO
 
 =over 4
 
-=item B<Fabrizio Levorin>
+=item L<BioX::Seq::Stream>
 
-has substantially contributed to the development of this module, and is a collaborator in the GitHub repository
-
-=back
+A brilliant module, unfortunately released after I already used this for my projects
 
 =cut
 1;
