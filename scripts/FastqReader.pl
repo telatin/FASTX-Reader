@@ -47,7 +47,7 @@ foreach my $input_file (@ARGV) {
 
 =head1 NAME
 
-B<Reader.pl> - A minimal implementation of the FASTX::Reader module to show how to parse a FASTA/FASTQ files
+B<FastqReader.pl> - A minimal implementation of the FASTX::Reader module to show how to parse a FASTQ files with the faster getFastqRead() method
 
 =head1 USAGE
 
@@ -80,8 +80,6 @@ The B<MetaCPAN> page for this module
 =over 4
 
 =item Andrea Telatin
-
-=item Fabrizio Levorin
 
 =back
 

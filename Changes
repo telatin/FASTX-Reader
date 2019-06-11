@@ -1,6 +1,12 @@
 This is the changelog for FASTX::Reader. Version prior to v 0.1 are preliminary (alpha) release, not to be used in production.
 Some APIs *can change* with the release of the first stable release (v 0.1).
 
+0.40	2019-06-12
+	*
+	
+0.31	2019-06-12
+	* POD documentation Updated
+
 0.30	2019-06-11
   * Improved getFastqRead() error handling
 	* Improved unit tests, in particular for getFastqRead() method

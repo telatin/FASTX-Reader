@@ -3,6 +3,9 @@ use warnings;
 use FindBin qw($Bin);
 use Test::More tests => 2;
 
+# This test checks the loadability of the module
+# and that the object is correctly blessed as FASTX::Reader
+
 use_ok 'FASTX::Reader';
 my $seq = "$Bin/../data/test.fastq";
 
