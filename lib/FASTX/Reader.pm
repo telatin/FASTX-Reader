@@ -3,7 +3,7 @@ use 5.014;
 use warnings;
 use Carp qw(confess);
 
-$FASTX::Reader::VERSION = '0.20';
+$FASTX::Reader::VERSION = '0.30';
 #ABSTRACT: A lightweight module to parse FASTA and FASTQ files, based on Heng Li's readfq() method, packaged in an object oriented parser.
 
 use constant MAGIC_GZIP => pack('C3', 0x1f, 0x8b, 0x08);
@@ -129,7 +129,7 @@ sub getRead {
           return;
       }
   }
-  my ($name, $comm) = /^.(\S+)(?:\s+)(\S+)/ ? ($1, $2) : 
+  my ($name, $comm) = /^.(\S+)(?:\s+)(\S+)/ ? ($1, $2) :
 	                    /^.(\S+)/ ? ($1, '') : ('', '');
   #my $comm = /^.\S+\s+(.*)/? $1 : ''; # retain "comment"
   my $seq = '';
@@ -185,6 +185,7 @@ sub getFastqRead {
   my $seq    = readline($self->{fh});
   my $check  = readline($self->{fh});
   my $qual   = readline($self->{fh});
+  $self->{status} = 1;
 
   # Check 4 lines were found (FASTQ)
   return undef unless (defined $qual);
@@ -210,9 +211,9 @@ sub getFastqRead {
     }
   } else {
     # Return error (not a FASTQ)
-    $self->{message} = "Unknown format: expecting FASTQ (wrong header)";
+    $self->{message} = "Unknown format: expecting FASTQ but @ header not found";
 
-    if (substr($seq, 0,1 ) eq '>' ) {
+    if (substr($header, 0,1 ) eq '>' ) {
       # HINT: is FASTA?
       $self->{message} .= " (might be FASTA instead)";
     }

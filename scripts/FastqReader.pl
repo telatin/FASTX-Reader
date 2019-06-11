@@ -32,20 +32,16 @@ foreach my $input_file (@ARGV) {
     say STDERR color('yellow'), "] Reading: $input_file", color('reset');
 
     my $counter = 0;
-    while (my $seq = $seq_reader->getRead()) {
+    while (my $seq = $seq_reader->getFastqRead()) {
       $counter++;
       # Print FASTA or FASTQ accordingly (check 'qual' defined)
-      if (defined $seq->{qual}) {
-        print '@', $seq->{name}, ' ', $seq->{comment}, "\n", $seq->{seq}, "\n+\n", $seq->{qual}, "\n";
-      } else {
-        print ">", $seq->{name}, ' ', $seq->{comment}, "\n", $seq->{seq}, "\n";
-      }
+      print '@', $seq->{name}, ' ', $seq->{comment}, "\n", $seq->{seq}, "\n+\n", $seq->{qual}, "\n";
     }
-    my $color = 'cyan';
-    $color = 'red' if ($seq_reader->{status});
+    my $color = 'red bold';
+    $color = 'cyan' if ($seq_reader->{status});
     say STDERR color('green'), "] Finished $input_file: $counter sequences\n", color($color),
       'Message: ', $seq_reader->{message},
-      'Status: ', $seq_reader->{status}, color('reset') if ($counter);
+      ' Status: ', $seq_reader->{status}, "\n", color('reset');
   }
 }
 
