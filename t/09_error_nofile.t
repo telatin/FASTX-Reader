@@ -12,12 +12,12 @@ if (-e $seq) {
   exit 0;
 }
 
-my $eval = 0;
-$eval = eval {
+
+my $eval = eval {
  my $data = FASTX::Reader->new({ filename => "$seq" });
  print Dumper $data;
  1;
 };
 
-ok($eval != 1, "Did not read a file");
+ok(!defined$eval, "Did not read a file");
 done_testing();
