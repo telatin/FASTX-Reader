@@ -2,8 +2,8 @@ This is the changelog for FASTX::Reader. Version prior to v 0.1 are preliminary 
 Some APIs *can change* with the release of the first stable release (v 0.1).
 
 0.40	2019-06-13
-	* Updated 'fqc' documentation, added '--verbose' feature, handling of non existing files, renamed tabular output switch to '-x/--screen' for consistency with 
-Proch::N50,...
+	* 'fqc': added '--verbose' feature, renamed tabular output switch to '-x/--screen' for consistency with Proch::N50
+	* 'fqc': improved  handling of non existing files, improved documentation
 
 0.32	2019-06-12
 	* Ships a script to count FASTA/FASTQ sequences called 'fqc' (see)
