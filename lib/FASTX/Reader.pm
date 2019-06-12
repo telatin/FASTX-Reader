@@ -1,5 +1,5 @@
 package FASTX::Reader;
-use 5.014;
+use 5.010;
 use warnings;
 use Carp qw(confess);
 
@@ -56,7 +56,7 @@ sub new {
     # Initialize auxiliary array for getRead
     $object->{aux} = [undef];
     $object->{compressed} = 0;
-    
+
     # Check if a filename was provided and not {{STDIN}}
     # uncoverable branch false
 

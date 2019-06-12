@@ -1,6 +1,5 @@
 #!/usr/bin/env perl
-use 5.012;
-use autodie;
+use 5.010;
 use Carp qw(confess);
 use FindBin qw($Bin);
 use lib "$Bin/../lib/";

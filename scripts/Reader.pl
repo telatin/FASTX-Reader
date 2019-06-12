@@ -1,35 +1,41 @@
 #!/usr/bin/env perl
-use 5.012;
-use autodie;
+use 5.010;
 use Term::ANSIColor;
 use Data::Dumper;
 use Carp qw(confess);
 use FindBin qw($Bin);
 use lib "$Bin/../lib/";
 use FASTX::Reader;
-say STDERR color('bold'), "TEST FASTA/FASTQ READER", color('reset');
-say STDERR color('bold'), "Read FASTA/FASTQ files, printing them back to the user", color('reset');
-say STDERR "Usage: $0 FILE1 FILE2 ... FILEn\n";
+
+# Print splash screen
+print STDERR color('bold'), "TEST FASTA/FASTQ READER\n", color('reset');
+print STDERR color('bold'), "Read FASTA/FASTQ files, printing them back to the user\n", color('reset');
+print STDERR "Usage: $0 FILE1 FILE2 ... FILEn\n\n";
 
 # Read two samples files if the user didnt provide any filename
 push(@ARGV,"$Bin/../data/test.fastq", "$Bin/../data/test.fasta" )
   unless ($ARGV[0]);
 
 foreach my $input_file (@ARGV) {
+
   # Skip non existing files
   if ( not -e "$input_file" and "$input_file" ne 'STDIN') {
-    say STDERR color('red'), "] Skipping: $input_file (not exists)", color('reset');
+    print STDERR color('red'), "] Skipping: $input_file (not exists)\n", color('reset');
     next;
+
   } else {
+
     my $seq_reader;
-    if ($input_file eq 'STDIN') {
-      say STDERR color('bold'), 'Reading STDIN', color('reset');
+
+    # Allow the user to type "STDIN" or "-" to read from STDIN
+    if ($input_file eq 'STDIN' or $input_file eq '-') {
+      print STDERR color('bold'), 'Reading STDIN', "\n", color('reset');
       $seq_reader = FASTX::Reader->new();
     } else {
       $seq_reader = FASTX::Reader->new({filename => "$input_file"});
     }
     # Parse the existing files (no check on file type?)
-    say STDERR color('yellow'), "] Reading: $input_file", color('reset');
+    print STDERR color('yellow'), "* Reading: $input_file\n", color('reset');
 
     my $counter = 0;
     while (my $seq = $seq_reader->getRead()) {
@@ -43,10 +49,9 @@ foreach my $input_file (@ARGV) {
     }
     my $color = 'cyan';
     $color = 'red' if ($seq_reader->{status});
-    say STDERR color('green'), "] Finished $input_file: $counter sequences\n", color($color),
-      'Message: ', $seq_reader->{message},
-      '| Status: ', $seq_reader->{status},
-      '| Compresed: ', $seq_reader->{compressed}, color('reset') if ($counter);
+    print STDERR color('green'), "| $counter sequences (in $input_file)\n", color($color),
+
+      '| Compresed: ', $seq_reader->{compressed}, "\n", color('reset') if ($counter);
   }
 }
 

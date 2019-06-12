@@ -26,7 +26,7 @@ for my $format ('fasta', 'fastq') {
 my $detected_format = FASTX::Reader->getFileFormat("$0");
 ok(! defined $detected_format, "Format detection ok: undef for non sequence file");
 
-# bad.fastq is a fastq file with errors
+# bad.fastq is a fastq file with errors -> undef
 my $bad_fastq = FASTX::Reader->getFileFormat("$Bin/../data/bad.fastq");
 ok(! defined $detected_format, "Format detection ok: undef for bad FASTQ file");
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env perl
-use 5.012;
-use autodie;
+use 5.010;
 use Term::ANSIColor;
 use Data::Dumper;
 use Carp qw(confess);
@@ -16,7 +15,7 @@ say STDERR "Usage: $0 FILE1 FILE2 ... FILEn\n";
 unless ($ARGV[0]) {
       say STDERR<<END;
   FastqReader.pl - A minimal implementation of the FASTX::Reader module to show
-  how to parse a FASTQ files with the faster getFastqRead() method. 
+  how to parse a FASTQ files with the faster getFastqRead() method.
 
   USAGE
 
