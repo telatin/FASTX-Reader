@@ -12,8 +12,27 @@ say STDERR color('bold'), "Read FASTA/FASTQ files, printing them back to the use
 say STDERR "Usage: $0 FILE1 FILE2 ... FILEn\n";
 
 # Read two samples files if the user didnt provide any filename
+
+unless ($ARGV[0]) {
+      say STDERR<<END;
+  FastqReader.pl - A minimal implementation of the FASTX::Reader module to show
+  how to parse a FASTQ files with the faster getFastqRead() method. 
+
+  USAGE
+
+      FastqReader.pl FILE1 FILE2 ... FILE{n}
+
+  If no arguments are supplied, it will parse two test files contained in the
+  script directory
+
+  NOTE
+  The printed sequences can be slightly different from the input file as the
+  header will be {name}{space}{comments}, but any white space (including a tab)
+  could be the comment separator
+
+END
 push(@ARGV,"$Bin/../data/test.fastq", "$Bin/../data/test.fasta" )
-  unless ($ARGV[0]);
+}
 
 foreach my $input_file (@ARGV) {
   # Skip non existing files
@@ -44,43 +63,3 @@ foreach my $input_file (@ARGV) {
       ' Status: ', $seq_reader->{status}, "\n", color('reset');
   }
 }
-
-=head1 NAME
-
-B<FastqReader.pl> - A minimal implementation of the FASTX::Reader module to show how to parse a FASTQ files with the faster getFastqRead() method
-
-=head1 USAGE
-
-  reader.pl FILE1 FILE2 ... FILE{n}
-
-If no arguments are supplied, it will parse two test files contained in the script directory
-
-=head1 NOTES
-
-The printed sequences can be slightly different from the input file as the header will be C<{name}{space}{comments}>, but any white space (including a tab) could be the
-comment separator
-
-=head1 WEBSITES
-
-=over 4
-
-=item L<https://github.com/telatin/FASTQ-Parser>
-
-
-The B<GitHub> repository for this module
-
-=item L<https://metacpan.org/pod/FASTX::Reader>
-
-The B<MetaCPAN> page for this module
-
-=back
-
-=head1 AUTHORS
-
-=over 4
-
-=item Andrea Telatin
-
-=back
-
-=cut

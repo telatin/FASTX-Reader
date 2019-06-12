@@ -45,13 +45,14 @@ foreach my $input_file (@ARGV) {
     $color = 'red' if ($seq_reader->{status});
     say STDERR color('green'), "] Finished $input_file: $counter sequences\n", color($color),
       'Message: ', $seq_reader->{message},
-      'Status: ', $seq_reader->{status}, color('reset') if ($counter);
+      '| Status: ', $seq_reader->{status},
+      '| Compresed: ', $seq_reader->{compressed}, color('reset') if ($counter);
   }
 }
 
 =head1 NAME
 
-B<Reader.pl> - A minimal implementation of the FASTX::Reader module to show how to parse a FASTA/FASTQ files
+B<Reader.pl and othe scripts> - Demo scripts implementing FASTX::Reader
 
 =head1 USAGE
 
@@ -61,15 +62,40 @@ If no arguments are supplied, it will parse two test files contained in the scri
 
 =head1 NOTES
 
-The printed sequences can be slightly different from the input file as the header will be C<{name}{space}{comments}>, but any white space (including a tab) could be the
-comment separator
+The printed sequences can be slightly different from the input file as the header will be C<{name}{space}{comments}>,
+but any white space (including a tab) could be the comment separator
+
+=head1 OTHER SAMPLE SCRIPTS
+
+The C<scripts> directory contains scripts to test the library:
+
+=over 4
+
+=item I<Reader.pl>
+
+This script: a minimal implementation of the FASTX::Reader module to show how to parse a FASTA/FASTQ files.
+It will work with demo files if no arguments are supplied.
+
+=item I<FastqReader.pl>
+
+A script to read and print sequences from FASTQ files using the faster C<getFastqRead()> method.
+It will work with demo files if no arguments are supplied.
+
+=item I<Counter.pl>
+
+A script to count the number of sequences in both FASTA/FASTQ files. It will work with demo files if no arguments are supplied.
+
+=item I<Stdin.pl>
+
+A script to print sequences from STDIN.
+
+=back
 
 =head1 WEBSITES
 
 =over 4
 
 =item L<https://github.com/telatin/FASTQ-Parser>
-
 
 The B<GitHub> repository for this module
 

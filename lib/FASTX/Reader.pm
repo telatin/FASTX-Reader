@@ -3,7 +3,7 @@ use 5.014;
 use warnings;
 use Carp qw(confess);
 
-$FASTX::Reader::VERSION = '0.31';
+$FASTX::Reader::VERSION = '0.32';
 #ABSTRACT: A lightweight module to parse FASTA and FASTQ files, based on Heng Li's readfq() method, packaged in an object oriented parser.
 
 use constant GZIP_SIGNATURE => pack('C3', 0x1f, 0x8b, 0x08);
@@ -55,7 +55,8 @@ sub new {
 
     # Initialize auxiliary array for getRead
     $object->{aux} = [undef];
-
+    $object->{compressed} = 0;
+    
     # Check if a filename was provided and not {{STDIN}}
     # uncoverable branch false
 
@@ -66,16 +67,17 @@ sub new {
 
       # See: __BioX::Seq::Stream__ for GZIP (and other) compressed file reader
       if (substr($magic_byte,0,3) eq GZIP_SIGNATURE) {
+         $object->{compressed} = 1;
          our $GZIP_BIN = _which('pigz', 'gzip');
          close $fh;
          if (! defined $GZIP_BIN) {
            require IO::Uncompress::Gunzip;
            $fh = IO::Uncompress::Gunzip->new($self->{filename}, MultiStream => 1);
          } else {
-	   open  $fh, '-|', "$GZIP_BIN -dc $self->{filename}" or confess "Error opening gzip file ", $self->{filename}, ": $!\n";
+	         open  $fh, '-|', "$GZIP_BIN -dc $self->{filename}" or confess "Error opening gzip file ", $self->{filename}, ": $!\n";
          }
       } else {
-	 close $fh;
+	       close $fh;
       	 open $fh,  '<:encoding(UTF-8)', $self->{filename} or confess "Unable to read file ", $self->{filename}, ": ", $!, "\n";
       }
       $object->{fh} = $fh;
