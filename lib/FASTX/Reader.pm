@@ -1,5 +1,5 @@
 package FASTX::Reader;
-use 5.012;
+use 5.014;
 use warnings;
 use Carp qw(confess);
 
