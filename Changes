@@ -3,6 +3,8 @@ Some APIs *can change* with the release of the first stable release (v 0.1).
 
 0.50	2019-06-13
 	* Added a control in new() that will stop parsing the file if it's binary (and not .gz)
+	* Added a new control in getFastqRead() to report truncated FASTQ files
+	* 'fqc': file without reads will print n/a instead of 0
 
 0.40	2019-06-13
 	* 'fqc': added '--verbose' feature, renamed tabular output switch to '-x/--screen' for consistency with Proch::N50

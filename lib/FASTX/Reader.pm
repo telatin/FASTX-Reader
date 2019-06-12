@@ -127,7 +127,7 @@ sub getRead {
   #my ($fh, $aux) = @_;
   my $fh = $self->{fh};
 
-  return undef if $self->{status};
+  return undef if (defined $self->{status} and $self->{status} == 0);
 
   my $aux = $self->{aux};
   my $return;
@@ -209,15 +209,26 @@ It will alter the C<status> attribute of the reader object if the FASTQ format l
 sub getFastqRead {
   my $self   = shift;
   my $seq_object = undef;
-  return undef if $self->{status};
+
+  return undef if (defined $self->{status} and $self->{status} == 0);
+ 
+  $self->{status} = 1;
   my $header = readline($self->{fh});
   my $seq    = readline($self->{fh});
   my $check  = readline($self->{fh});
   my $qual   = readline($self->{fh});
-  $self->{status} = 1;
+  
 
   # Check 4 lines were found (FASTQ)
-  return undef unless (defined $qual);
+
+  unless (defined $qual) {
+    if (defined $header) {
+      $self->{message} = "Unknown format: FASTQ truncated at " . $header . "?";
+      $self->{status} = 0;   
+    }
+    return undef;
+  }
+
   # Fast format control: header and separator
   if ( (substr($header, 0, 1) eq '@') and (substr($check, 0, 1) eq '+') ) {
     chomp($header);
