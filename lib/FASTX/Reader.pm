@@ -3,7 +3,7 @@ use 5.012;
 use warnings;
 use Carp qw(confess);
 
-$FASTX::Reader::VERSION = '0.32';
+$FASTX::Reader::VERSION = '0.40';
 #ABSTRACT: A lightweight module to parse FASTA and FASTQ files, based on Heng Li's readfq() method, packaged in an object oriented parser.
 
 use constant GZIP_SIGNATURE => pack('C3', 0x1f, 0x8b, 0x08);
