@@ -2,8 +2,8 @@ This is the changelog for FASTX::Reader. Version prior to v 0.1 are preliminary 
 Some APIs *can change* with the release of the first stable release (v 0.1).
 
 0.32	2019-06-12
-	* Reduced required Perl to 5.10 [experimental]
-  * Reader object new property 'compressed' (1 if reading .gz files, 0 otherwise)
+	* Ships a script to count FASTA/FASTQ sequences called 'fqc' (see)
+	* Reader object new property 'compressed' (1 if reading .gz files, 0 otherwise)
 	* POD documentation Updated
 
 0.31	2019-06-12
