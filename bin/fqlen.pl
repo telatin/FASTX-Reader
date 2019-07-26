@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
-# ABSTRACT: fqlen.pl - A demo implementation to filter fastx files by length
+# ABSTRACT: A demo implementation to filter fastx files by length
+# PODNAME: fqlen.pl
 
 use 5.014;
 use FASTX::Reader;
