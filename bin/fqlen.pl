@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+# ABSTRACT: fqlen.pl - A demo implementation to filter fastx files by length
+
 use 5.014;
 use FASTX::Reader;
 use Getopt::Long;
