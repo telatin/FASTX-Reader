@@ -347,7 +347,7 @@ sub _which {
 		}
 	} else {
 		foreach my $cmd (@_) {
-			`which $cmd`;
+			`which $cmd  2> /dev/null`;
 			return $cmd if (not $?);
 		}
 	}
