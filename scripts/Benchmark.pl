@@ -1,10 +1,10 @@
 #!/usr/bin/env perl
 use 5.010;
 use Carp qw(confess);
-use FindBin qw($Bin);
+use FindBin qw($RealBin);
 use lib "$RealBin/../lib/";
 use FASTX::Reader;
-
+use Benchmark qw{ timethese };
 # Read two samples files if the user didnt provide any filename
 unless ($ARGV[0]) {
  say STDERR "[WARNING] No input file specified, using test data";
@@ -14,27 +14,39 @@ unless ($ARGV[0]) {
  -------------------------------------------------------------------------------
  USAGE
 
-   Counter.pl FILE1 FILE2 ... FILE{n}
+   Benchmark.pl FILE1 FILE2 ... FILE{n}
 
  If no arguments are supplied, it will parse two test files contained in the script directory
  -------------------------------------------------------------------------------
 END
 }
 
-foreach my $input_file (@ARGV) {
-  # Skip non existing files
-  if ( not -e "$input_file") {
-    next;
-  } else {
-    my  $seq_reader = FASTX::Reader->new({filename => "$input_file"});
-    my $counter = 0;
-    while (my $seq = $seq_reader->getRead()) {
-      $counter++;
-    }
-    if ($counter) {
-	say $input_file, "\t", $counter;
-    } else {
-	say STDERR "$input_file\t[Probably not in FASTA/FASTQ format]";
-    }
+die "$ARGV[0] not found.\n" unless (-e $ARGV[0]);
+my $load = '
+my $c = 0;
+my $l = 0;
+my $R = FASTX::Reader->new({ filename => "' . $ARGV[0] . '" });
+';
+
+my $fx = $load . q(
+  while (my $seq = $R->getRead()) {
+    $c++;
+    $l += length($seq->{seq});
   }
-}
+  print " $c\r";
+);
+
+my $fq = $load . q(
+  while (my $seq = $R->getFastqRead()) {
+    $c++;
+    $l += length($seq->{seq});
+  }
+  print " $c\r";
+);
+
+say $fx;
+say $fq;
+timethese( 10000, {
+        FxReader    => $fx,
+        FqReader    => $fq,
+  });
