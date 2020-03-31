@@ -1,6 +1,9 @@
 This is the changelog for FASTX::Reader. Version prior to v 0.1 are preliminary (alpha) release, not to be used in production.
 Some APIs *can change* with the release of the first stable release (v 0.1).
 
+0.80	2020-03-31
+	* Added the `getIlluminaRead()` method that parses the read name to populate extra attributes.
+
 0.70	2020-01-20
 	* Added attribute 'loadseqs' in method new(), will load all sequence in %{ $self-{seqs} }. Values can be 'name' or 'seq' (that is the key of the resulting hash)
 
