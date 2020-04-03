@@ -4,6 +4,8 @@ use warnings;
 use Carp qw(confess);
 use Data::Dumper;
 $FASTX::Reader::VERSION = '0.80';
+require Exporter;
+our @ISA = qw(Exporter);
 #ABSTRACT: A lightweight module to parse FASTA and FASTQ files, based on Heng Li's readfq() method, packaged in an object oriented parser.
 
 use constant GZIP_SIGNATURE => pack('C3', 0x1f, 0x8b, 0x08);
