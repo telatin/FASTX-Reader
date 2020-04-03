@@ -133,9 +133,9 @@ sub new {
     return $object;
 }
 
-=head2 getRead()
+=head2 getReads()
 
-Will return the next sequence in the FASTA / FASTQ file using Heng Li's implementation of the readfq() algorithm.
+Will return the next sequences in the FASTA / FASTQ file.
 The returned object has these attributes:
 
 =over 4
@@ -144,17 +144,17 @@ The returned object has these attributes:
 
 header of the sequence (identifier)
 
-=item I<comment>
+=item I<comment1> and I<comment2> 
 
-any string after the first whitespace in the header
+any string after the first whitespace in the header, for the first and second paired read respectively.
 
-=item I<seq>
+=item I<seq1> and I<seq2>
 
-actual sequence
+DNA sequence for the first and the second pair, respectively
 
-=item I<qual>
+=item I<qual1> and I<qual2> 
 
-quality if the file is FASTQ
+quality for the first and the second pair, respectively
 
 =back
 
@@ -209,6 +209,7 @@ sub getReads {
 =item L<FASTX::Reader>
 
 The FASTA/FASTQ parser this module is based on.
+
 =back
 
 =cut
