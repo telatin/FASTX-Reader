@@ -5,7 +5,7 @@ use Test::More;
 use FASTX::Reader;
 use FASTX::PE;
 
-# TEST: Retrieves sequences from a test FASTA file
+# TEST: Check errors on wrong filenames
 
 my $seqfile1 = "$RealBin/../data/illumina_1.fq.gz";
 my $seqfile2 = "$RealBin/../data/illumina_2.fq.gz";
@@ -14,10 +14,22 @@ my $badfile2 = "$RealBin/../data/illumina_R2.fq.gz";
 # Check required input file
 if (! -e $seqfile1) {
   print STDERR "Skip test: $seqfile1 (R1) not found\n";
+  done_testing();
   exit 0;
 }
 if (! -e $seqfile2) {
   print STDERR "Skip test: $seqfile2 (R2) not found\n";
+  done_testing();
+  exit 0;
+}
+if (-e $badfile1) {
+  print STDERR "Skip test: $badfile1 (R1) not expected\n";
+  done_testing();
+  exit 0;
+}
+if (-e $badfile2) {
+  print STDERR "Skip test: $badfile1 (R2) not expected\n";
+  done_testing();
   exit 0;
 }
 

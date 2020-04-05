@@ -5,7 +5,7 @@ use Test::More;
 use FASTX::Reader;
 use FASTX::PE;
 
-# TEST: Retrieves sequences from a test FASTA file
+# TEST: Test FASTX::PE working letting the module calculating the R2
 
 my $seqfile1 = "$RealBin/../data/illumina_1.fq.gz";
 

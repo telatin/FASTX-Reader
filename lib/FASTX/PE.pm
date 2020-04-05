@@ -197,11 +197,12 @@ sub getReads {
     return undef;
   }
 
-  if (not defined $self->{nocheck}) {
+  if ($self->{nocheck} != 1) {
     if ($r1->{name} ne  $r2->{name}) {
       confess("Read name different in PE:\n[$r1->{name}] !=\n[$r2->{name}]\n");
     }
   }
+
 
   $pe->{name} = $r1->{name};
   $pe->{seq1} = $r1->{seq};

@@ -5,7 +5,7 @@ use Test::More;
 use FASTX::Reader;
 use FASTX::PE;
 
-# TEST: Retrieves sequences from a test FASTA file
+# TEST: Parse an interleaved file
 
 my $seq_file = "$RealBin/../data/interleaved.fq.gz";
 
