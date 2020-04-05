@@ -1,9 +1,9 @@
 package FASTX::Reader;
-use 5.014;
+use 5.012;
 use warnings;
 use Carp qw(confess);
 use Data::Dumper;
-$FASTX::Reader::VERSION = '0.82';
+$FASTX::Reader::VERSION = '0.85';
 require Exporter;
 our @ISA = qw(Exporter);
 #ABSTRACT: A lightweight module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.
@@ -23,7 +23,7 @@ use constant GZIP_SIGNATURE => pack('C3', 0x1f, 0x8b, 0x08);
 
 =head1 BUILD TEST
 
-=for html <a href="https://travis-ci.org/telatin/FASTQ-Parser"><img src="https://travis-ci.org/telatin/FASTQ-Parser.svg?branch=master"></a>
+=for html <p><a href="https://travis-ci.org/telatin/FASTQ-Parser"><img src="https://travis-ci.org/telatin/FASTQ-Parser.svg?branch=master"></a></p>
 
 Each GitHub release of the module is tested by L<Travis-CI|https://travis-ci.org/telatin/FASTQ-Parser/builds> using multiple Perl versions (5.14 to 5.28).
 

@@ -1,5 +1,5 @@
 package FASTX::PE;
-use 5.014;
+use 5.012;
 use warnings;
 use Carp qw(confess cluck);
 use Data::Dumper;
@@ -24,7 +24,7 @@ $FASTX::PE::VERSION = $FASTX::Reader::VERSION;
 
 =head1 BUILD TEST
 
-=for html <a href="https://travis-ci.org/telatin/FASTQ-Parser"><img src="https://travis-ci.org/telatin/FASTQ-Parser.svg?branch=master"></a>
+=for html <p><a href="https://travis-ci.org/telatin/FASTQ-Parser"><img src="https://travis-ci.org/telatin/FASTQ-Parser.svg?branch=master"></a></p>
 
 Each GitHub release of the module is tested by L<Travis-CI|https://travis-ci.org/telatin/FASTQ-Parser/builds> using multiple Perl versions (5.14 to 5.28).
 
@@ -35,21 +35,25 @@ In addition to this, every CPAN release is tested by the L<CPAN testers grid|htt
 
 =head2 new()
 
-Initialize a new FASTX::Reader object passing 'filename' argument. Will open a filehandle
-stored as $object->{fh}.
+Initialize a new FASTX::Reader object passing 'B<filename>' argument for the first pairend,
+and optionally 'B<rev>' for the second (otherwise can be guessed substituting 'R1' with 'R2' and
+'_1.' with '_2.')
 
-  my $seq_from_file = FASTX::Reader->({ filename => "$file" });
+  my $pairend = FASTX::Reader->({ 
+      filename => "$file_R1",
+      rev      => "$file_R2"
+  });
 
-To read from STDIN either pass C<{{STDIN}}> as filename, or don't pass a filename at all:
+To read from STDIN either pass C<{{STDIN}}> as filename, or don't pass a filename at all.
+In this case the module will expect an interleaved pairedend file.
 
   my $seq_from_stdin = FASTX::Reader->();
 
-The parameter C<loadseqs> will preload all sequences in a hash having the sequence
-name as key and its sequence as value.
+If a '_R2' file is not found, the module will try parsing as B<interleaved>. This can be forced with:
 
   my $seq_from_file = FASTX::Reader->({
-    filename => "$file",
-    loadseqs => 1,
+    filename    => "$file",
+    interleaved => 1,
   });
 
 =cut
@@ -63,10 +67,12 @@ sub new {
       'filename' => 1,
       'tag1' => 1,
       'tag2' => 1,
-      'reverse' => 1,
+      'rev' => 1,
       'interleaved' => 1,
       'nocheck' => 1,
+      'revcompl' => 1,
     );
+
     my $valid_attributes = join(', ', keys %accepted_parameters);
 
     if ($args) {
@@ -80,11 +86,12 @@ sub new {
 
     my $self = {
         filename    => $args->{filename},
-        reverse     => $args->{reverse},
-        interleaved => $args->{interleaved},
+        rev         => $args->{rev},
+        interleaved => $args->{interleaved} // 0,
         tag1        => $args->{tag1},
         tag2        => $args->{tag2},
-        nocheck     => $args->{nocheck},
+        nocheck     => $args->{nocheck} // 0,
+        revcompl    => $args->{revcompl} // 0,
     };
 
 
@@ -105,27 +112,36 @@ sub new {
       }
     } else {
       # Decode PE
-      if ( ! defined $self->{reverse} ) {
+      if ( ! defined $self->{rev} ) {
 
-        # Auto calculate reverse filename
-        my $reverse = $self->{filename};
+        # Auto calculate reverse (R2) filename
+        my $rev = $self->{filename};
         if (defined $self->{tag1} and defined $self->{tag2}) {
-          $reverse =~s/$self->{tag1}/$self->{tag2}/;
+          $rev =~s/$self->{tag1}/$self->{tag2}/;
         } else {
 
-          $reverse =~s/_R1/_R2/;
-          $reverse =~s/_1/_2/ if ($reverse eq $self->{filename});
+          $rev =~s/_R1/_R2/;
+          $rev =~s/_1/_2/ if ($rev eq $self->{filename});
         }
 
-        if ( ($self->{filename} eq $reverse) or (not -e $reverse) ) {
-          confess("ERROR: The reverse file for '$self->{filename}' was not found in '$reverse'\n");
+        if (not -e $rev)  {
+          # TO DEFINE: confess("ERROR: The rev file for '$self->{filename}' was not found in '$rev'\n");
+          say STDERR "WARNING: Pair not specified and \"$rev\" not found for \"$self->{filename}\":\n trying parsing as interleaved.\n";
+          $self->{interleaved} = 1;
+          $self->{nocheck} = 0;
+        } elsif ($self->{filename} eq $rev) {
+          say STDERR "WARNING: Pair not specified for \"$self->{filename}\":\n trying parsing as interleaved.\n";
+          $self->{interleaved} = 1;
+          $self->{nocheck} = 0;
         } else {
-          $self->{reverse} = $reverse;
+          $self->{rev} = $rev;
         }
+
       }
 
       $self->{R1}  = FASTX::Reader->new({ filename => "$self->{filename}"});
-      $self->{R2}  = FASTX::Reader->new({ filename => "$self->{reverse}"});
+      $self->{R2}  = FASTX::Reader->new({ filename => "$self->{rev}"}) 
+        if (not $self->{interleaved});
 
     }
 
@@ -188,10 +204,17 @@ sub getReads {
   }
 
   $pe->{name} = $r1->{name};
-  $pe->{qual1} = $r1->{qual};
-  $pe->{qual2} = $r2->{qual};
   $pe->{seq1} = $r1->{seq};
-  $pe->{seq2} = $r2->{seq};
+  $pe->{qual1} = $r1->{qual};
+
+  if ($self->{revcompl}) {
+    $pe->{seq2} = _rc( $r2->{seq} );
+    $pe->{qual2} = reverse( $r2->{qual} );
+  } else {
+    $pe->{seq2} = $r2->{seq};
+    $pe->{qual2} = $r2->{qual};
+  }
+
   $pe->{comment1} = $r1->{comment};
   $pe->{comment2} = $r2->{comment};
 
@@ -213,4 +236,12 @@ The FASTA/FASTQ parser this module is based on.
 =back
 
 =cut
+
+sub _rc {
+  my $sequence = shift @_;
+  $sequence = reverse($sequence);
+  $sequence =~tr/ACGTacgt/TGCAtgca/;
+  return $sequence;
+}
 1;
+

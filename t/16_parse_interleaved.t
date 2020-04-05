@@ -7,15 +7,15 @@ use FASTX::PE;
 
 # TEST: Retrieves sequences from a test FASTA file
 
-my $seq = "$RealBin/../data/interleaved.fq.gz";
+my $seq_file = "$RealBin/../data/interleaved.fq.gz";
 
 # Check required input file
-if (! -e $seq) {
-  print STDERR "Skip test: $seq not found\n";
+if (! -e $seq_file) {
+  print STDERR "Skip test: $seq_file not found\n";
   exit 0;
 }
 
-my $data = FASTX::PE->new({ filename => "$seq", interleaved => 1 });
+my $data = FASTX::PE->new({ filename => "$seq_file", interleaved => 1 });
 my $pe = $data->getReads();
  
 ok(defined $pe->{seq1},  "[PE] sequence1 is defined");
