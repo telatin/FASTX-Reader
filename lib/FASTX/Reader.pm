@@ -3,7 +3,7 @@ use 5.012;
 use warnings;
 use Carp qw(confess);
 use Data::Dumper;
-$FASTX::Reader::VERSION = '0.85';
+$FASTX::Reader::VERSION = '0.87';
 require Exporter;
 our @ISA = qw(Exporter);
 #ABSTRACT: A lightweight module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.
@@ -37,16 +37,16 @@ In addition to this, every CPAN release is tested by the L<CPAN testers grid|htt
 Initialize a new FASTX::Reader object passing 'filename' argument. Will open a filehandle
 stored as $object->{fh}.
 
-  my $seq_from_file = FASTX::Reader->({ filename => "$file" });
+  my $seq_from_file = FASTX::Reader->new({ filename => "$file" });
 
 To read from STDIN either pass C<{{STDIN}}> as filename, or don't pass a filename at all:
 
-  my $seq_from_stdin = FASTX::Reader->();
+  my $seq_from_stdin = FASTX::Reader->new();
 
 The parameter C<loadseqs> will preload all sequences in a hash having the sequence
 name as key and its sequence as value.
 
-  my $seq_from_file = FASTX::Reader->({
+  my $seq_from_file = FASTX::Reader->new({
     filename => "$file",
     loadseqs => 1,
   });

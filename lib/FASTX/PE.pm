@@ -4,6 +4,7 @@ use warnings;
 use Carp qw(confess cluck);
 use Data::Dumper;
 use FASTX::Reader;
+use File::Basename;
 $FASTX::PE::VERSION = $FASTX::Reader::VERSION;
 #ABSTRACT: A Paired-End FASTQ files reader, based on FASTX::Reader.
 
@@ -39,7 +40,7 @@ Initialize a new FASTX::Reader object passing 'B<filename>' argument for the fir
 and optionally 'B<rev>' for the second (otherwise can be guessed substituting 'R1' with 'R2' and
 '_1.' with '_2.')
 
-  my $pairend = FASTX::Reader->({ 
+  my $pairend = FASTX::Reader->new({ 
       filename => "$file_R1",
       rev      => "$file_R2"
   });
@@ -47,11 +48,11 @@ and optionally 'B<rev>' for the second (otherwise can be guessed substituting 'R
 To read from STDIN either pass C<{{STDIN}}> as filename, or don't pass a filename at all.
 In this case the module will expect an interleaved pairedend file.
 
-  my $seq_from_stdin = FASTX::Reader->();
+  my $seq_from_stdin = FASTX::Reader->new();
 
 If a '_R2' file is not found, the module will try parsing as B<interleaved>. This can be forced with:
 
-  my $seq_from_file = FASTX::Reader->({
+  my $seq_from_file = FASTX::Reader->new({
     filename    => "$file",
     interleaved => 1,
   });
@@ -71,6 +72,7 @@ sub new {
       'interleaved' => 1,
       'nocheck' => 1,
       'revcompl' => 1,
+      'verbose'  => 1,
     );
 
     my $valid_attributes = join(', ', keys %accepted_parameters);
@@ -92,6 +94,7 @@ sub new {
         tag2        => $args->{tag2},
         nocheck     => $args->{nocheck} // 0,
         revcompl    => $args->{revcompl} // 0,
+        verbose     => $args->{verbose} // 0,
     };
 
 
@@ -115,18 +118,26 @@ sub new {
       if ( ! defined $self->{rev} ) {
 
         # Auto calculate reverse (R2) filename
-        my $rev = $self->{filename};
+        my $rev = basename($self->{filename});
+
         if (defined $self->{tag1} and defined $self->{tag2}) {
           $rev =~s/$self->{tag1}/$self->{tag2}/;
+          $rev = dirname($self->{basename}) . $rev;
         } else {
-
+          
           $rev =~s/_R1/_R2/;
-          $rev =~s/_1/_2/ if ($rev eq $self->{filename});
+          say STDERR "R2 not provided, autoguess (_R1/_R2): $rev" if ($self->{verbose});
+          if ($rev eq basename($self->{filename}) ) {
+              $rev =~s/_1\./_2./;
+              say STDERR "R2 not provided for $self->{filename}, now autoguess (_1/_2): $rev" if ($self->{verbose});
+          }
+ 
+          $rev = dirname($self->{filename}) . '/' . $rev;
         }
 
         if (not -e $rev)  {
           # TO DEFINE: confess("ERROR: The rev file for '$self->{filename}' was not found in '$rev'\n");
-          say STDERR "WARNING: Pair not specified and \"$rev\" not found for \"$self->{filename}\":\n trying parsing as interleaved.\n";
+          say STDERR "WARNING: Pair not specified and R2 \"$rev\" not found for R1 \"$self->{filename}\":\n trying parsing as interleaved.\n";
           $self->{interleaved} = 1;
           $self->{nocheck} = 0;
         } elsif ($self->{filename} eq $rev) {
