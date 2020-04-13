@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use FindBin qw($Bin);
+use FindBin qw($RealBin);
 use Test::More;
 use Data::Dumper;
 use FASTX::Reader;
@@ -12,6 +12,7 @@ my $data = FASTX::Reader->new();
 
 my $seq = $data->getRead({  filename => '{{STDIN}}' });
 my $copy = $seq->{seq};
+
 ok(length($copy) >0 , '[STDIN/explicit] Received a string as sequence');
 $copy =~s/[ACGTNacgtn]//g;
 ok(length($copy) == 0, '[STDIN/explicit] Sequence does not contain unexcpected chars');

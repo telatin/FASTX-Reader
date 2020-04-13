@@ -1,10 +1,12 @@
 package FASTX::Reader;
-use 5.014;
+use 5.012;
 use warnings;
 use Carp qw(confess);
-
-$FASTX::Reader::VERSION = '0.60';
-#ABSTRACT: A lightweight module to parse FASTA and FASTQ files, based on Heng Li's readfq() method, packaged in an object oriented parser.
+use Data::Dumper;
+$FASTX::Reader::VERSION = '0.87';
+require Exporter;
+our @ISA = qw(Exporter);
+#ABSTRACT: A lightweight module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.
 
 use constant GZIP_SIGNATURE => pack('C3', 0x1f, 0x8b, 0x08);
 
@@ -21,7 +23,7 @@ use constant GZIP_SIGNATURE => pack('C3', 0x1f, 0x8b, 0x08);
 
 =head1 BUILD TEST
 
-=for html <a href="https://travis-ci.org/telatin/FASTQ-Parser"><img src="https://travis-ci.org/telatin/FASTQ-Parser.svg?branch=master"></a>
+=for html <p><a href="https://travis-ci.org/telatin/FASTQ-Parser"><img src="https://travis-ci.org/telatin/FASTQ-Parser.svg?branch=master"></a></p>
 
 Each GitHub release of the module is tested by L<Travis-CI|https://travis-ci.org/telatin/FASTQ-Parser/builds> using multiple Perl versions (5.14 to 5.28).
 
@@ -35,11 +37,19 @@ In addition to this, every CPAN release is tested by the L<CPAN testers grid|htt
 Initialize a new FASTX::Reader object passing 'filename' argument. Will open a filehandle
 stored as $object->{fh}.
 
-  my $seq_from_file = FASTX::Reader->({ filename => "$file" });
+  my $seq_from_file = FASTX::Reader->new({ filename => "$file" });
 
 To read from STDIN either pass C<{{STDIN}}> as filename, or don't pass a filename at all:
 
-  my $seq_from_stdin = FASTX::Reader->();
+  my $seq_from_stdin = FASTX::Reader->new();
+
+The parameter C<loadseqs> will preload all sequences in a hash having the sequence
+name as key and its sequence as value.
+
+  my $seq_from_file = FASTX::Reader->new({
+    filename => "$file",
+    loadseqs => 1,
+  });
 
 =cut
 
@@ -47,9 +57,20 @@ sub new {
     # Instantiate object
     my ($class, $args) = @_;
 
+    if (defined $args->{loadseqs}) {
+      if ($args->{loadseqs} eq 'name' or $args->{loadseqs} eq 'names' ) {
+        $args->{loadseqs} = 'name';
+      } elsif ($args->{loadseqs} eq 'seq' or $args->{loadseqs} eq 'seqs' or $args->{loadseqs} == 1) {
+        $args->{loadseqs} = 'seq';
+      } else {
+        confess("attribute <loadseqs> should be 'name' or 'seq' to specify the key of the hash.");
+      }
+    }
     my $self = {
         filename  => $args->{filename},
+        loadseqs  => $args->{loadseqs},
     };
+
 
     my $object = bless $self, $class;
 
@@ -89,6 +110,14 @@ sub new {
       $object->{fh} = $fh;
     } else {
       $self->{fh} = \*STDIN;
+      if ($self->{load}) {
+        confess("Load sequences not supported for STDIN");
+      }
+    }
+
+    if ($self->{loadseqs}) {
+      _load_seqs($self);
+
     }
 
     return $object;
@@ -125,6 +154,7 @@ quality if the file is FASTQ
 sub getRead {
   my $self   = shift;
   #my ($fh, $aux) = @_;
+  #@<instrument>:<run number>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos>:<UMI> <read>:<is filtered>:<control number>:<index>
   my $fh = $self->{fh};
 
   return undef if (defined $self->{status} and $self->{status} == 0);
@@ -152,7 +182,7 @@ sub getRead {
   # Comments can have more spaces:    xx
   my ($name, $comm) = /^.(\S+)(?:\s+)(.+)/ ? ($1, $2) :
 	                    /^.(\S+)/ ? ($1, '') : ('', '');
-  
+
   my $seq = '';
   my $c;
   $aux->[0] = undef;
@@ -194,7 +224,8 @@ sub getRead {
 
 =head2 getFastqRead()
 
-If the file is FASTQ, this method returns the same read object as I<getRead()> but with a faster parser.
+If the file is FASTQ, this method returns the same read object as I<getRead()> but with a simpler,
+FASTQ-specific, parser.
 Attributes of the returned object are I<name>, I<comment>, I<seq>, I<qual> (as for I<getRead()>).
 It will alter the C<status> attribute of the reader object if the FASTQ format looks terribly wrong.
 
@@ -214,20 +245,20 @@ sub getFastqRead {
   my $seq_object = undef;
 
   return undef if (defined $self->{status} and $self->{status} == 0);
- 
+
   $self->{status} = 1;
   my $header = readline($self->{fh});
   my $seq    = readline($self->{fh});
   my $check  = readline($self->{fh});
   my $qual   = readline($self->{fh});
-  
+
 
   # Check 4 lines were found (FASTQ)
 
   unless (defined $qual) {
     if (defined $header) {
       $self->{message} = "Unknown format: FASTQ truncated at " . $header . "?";
-      $self->{status} = 0;   
+      $self->{status} = 0;
     }
     return undef;
   }
@@ -244,6 +275,119 @@ sub getFastqRead {
       $seq_object->{comments} = $comments;
       $seq_object->{seq} = $seq;
       $seq_object->{qual} = $qual;
+      $self->{counter}++;
+
+    } else {
+      # Return error (corrupted FASTQ)
+      $self->{message} = "Unknown format: expecting FASTQ (corrupted?)";
+      $self->{status} = 0;
+
+    }
+  } else {
+    # Return error (not a FASTQ)
+    $self->{message} = "Unknown format: expecting FASTQ but @ header not found";
+
+    if (substr($header, 0,1 ) eq '>' ) {
+      # HINT: is FASTA?
+      $self->{message} .= " (might be FASTA instead)";
+    }
+    $self->{status} = 0;
+  }
+
+  return $seq_object;
+}
+
+=head2 getIlluminaRead()
+
+If the file is FASTQ, this method returns the same read object as I<getRead()> but with a simpler parser.
+Attributes of the returned object are I<name>, I<comment>, I<seq>, I<qual> (as for I<getRead()>).
+In addition to this it will parse the name and comment populating these properties fromt the read name:
+C<instrument>, C<run>, C<flowcell>, C<lane>, C<tile>, C<x>, C<y>, C<umi>.
+
+If the comment is also present the following will also populated: C<read> (1 for R1, and 2 for R2),
+C<index> (barcode of the current read), C<paired_index> (barcode of the other read)
+and C<filtered> (true if the read is to be discarded, false elsewhere).
+
+It will alter the C<status> attribute of the reader object if the FASTQ format looks terribly wrong.
+
+  while (my $seq = $fasta_reader->getIlluminaRead() ) {
+    print $seq->{name}, "\t", $seq->{instrument}, ',', $seq->{index1}, "\n";
+  }
+
+=cut
+
+sub getIlluminaRead {
+  my $self   = shift;
+  my $seq_object = undef;
+
+  return undef if (defined $self->{status} and $self->{status} == 0);
+
+  $self->{status} = 1;
+  my $header = readline($self->{fh});
+  my $seq    = readline($self->{fh});
+  my $check  = readline($self->{fh});
+  my $qual   = readline($self->{fh});
+
+
+  # Check 4 lines were found (FASTQ)
+
+  unless (defined $qual) {
+    if (defined $header) {
+      $self->{message} = "Unknown format: FASTQ truncated at " . $header . "?";
+      $self->{status} = 0;
+    }
+    return undef;
+  }
+
+  # Fast format control: header and separator
+  if ( (substr($header, 0, 1) eq '@') and (substr($check, 0, 1) eq '+') ) {
+    chomp($header);
+    chomp($seq);
+    chomp($qual);
+    # Also control sequence integrity
+    if ($seq=~/^[ACGTNacgtn]+$/ and length($seq) == length($qual) ) {
+      my ($name, $comments) = split /\s+/, substr($header, 1);
+      #@<instrument>:<run number>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos>:<UMI> <read>:<is filtered>:<control number>:<index>
+      my ($instrument, $run, $flowcell, $lane, $tile, $x, $y, $umi) = split /:/, $name;
+      my ($read, $filtered, $ctrl, $index1, $index2);
+
+      if (not defined $y) {
+        $self->{message} = "Unknown format: not Illumina naming: <instrument>:<run number>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos>";
+        $self->{status} = 0;
+      }
+
+      $seq_object->{name} = $name;
+      $seq_object->{comments} = $comments;
+      $seq_object->{seq} = $seq;
+      $seq_object->{qual} = $qual;
+
+      $seq_object->{instrument} = $instrument;
+      $seq_object->{run} = $run;
+      $seq_object->{flowcell} = $flowcell;
+      $seq_object->{lane} = $lane;
+      $seq_object->{tile} = $tile;
+      $seq_object->{x} = $x;
+      $seq_object->{y} = $y;
+      $seq_object->{umi} = $umi;
+      $seq_object->{instrument} = $instrument;
+      $seq_object->{run} = $run;
+      $seq_object->{flowcell} = $flowcell;
+
+      if (defined $comments) {
+          ($read, $filtered, $ctrl, $index1, $index2) = split /[:+]/, $comments;
+          if ( defined $ctrl ) {
+            $seq_object->{read} = $read;
+            $filtered eq 'N' ? $seq_object->{filtered} = 0 : $seq_object->{filtered} = 1;
+            $seq_object->{control} = $ctrl;
+            if ($read eq '1') {
+               $seq_object->{index} = $index1;
+               $seq_object->{paired_index} =  $index2;
+            } else {
+              $seq_object->{paired_index} = $index1;
+              $seq_object->{index} =  $index2;
+            }
+          }
+      }
       $self->{counter}++;
 
     } else {
@@ -295,6 +439,23 @@ sub getFileFormat {
     return undef;
   }
 }
+sub _load_seqs {
+  my ($self) = @_;
+  return 0 unless (defined $self->{loadseqs});
+
+  my $seqs = undef;
+  while (my $s = $self->getRead() ) {
+      my ($name, $seq) = ($s->{name}, $s->{seq});
+      if ($self->{loadseqs} eq 'name') {
+        $seqs->{$name} = $seq;
+      } else {
+        $seqs->{$seq} = $name;
+      }
+
+  }
+  $self->{seqs} = $seqs;
+}
+
 
 sub _which {
 	return undef if ($^O eq 'MSWin32');
@@ -305,7 +466,7 @@ sub _which {
 		}
 	} else {
 		foreach my $cmd (@_) {
-			`which $cmd`;
+			`which $cmd  2> /dev/null`;
 			return $cmd if (not $?);
 		}
 	}
