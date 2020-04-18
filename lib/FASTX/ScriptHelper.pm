@@ -160,6 +160,13 @@ sub is_seq {
     }
 }
 
+=head2 split_string
+
+  arguments: sequence
+
+Returns a string with newlines at a width specified by 'linesize'
+
+=cut
 
 sub split_string {
   my $self = undef;
