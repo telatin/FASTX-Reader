@@ -134,7 +134,7 @@ Returns the reverse complementary of a sequence
 
 =cut
 
-sub rc($) {
+sub rc ($) {
     my $self = undef;
     if ( ref($_[0]) eq 'FASTX::ScriptHelper' ) {
       $self = shift @_;
@@ -146,6 +146,13 @@ sub rc($) {
     }
 }
 
+=head2 is_seq
+
+  arguments: sequence
+
+Returns true if the sequence only contains DNA-IUPAC chars
+
+=cut
 
 sub is_seq {
     my $self = undef;
