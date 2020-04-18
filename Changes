@@ -5,6 +5,7 @@ Version 0.61 has been available via BioConda
 0.88  2020-04-13
   * getFileFormat() also supports gzipped files
   * FASTX::PE strips /1 /2 _1 _2 _R1 _R2 from interleaved read names
+  * Preliminary release of FASTX::ScriptHelper
   * Bug fixes
 
 0.87  2020-04-05

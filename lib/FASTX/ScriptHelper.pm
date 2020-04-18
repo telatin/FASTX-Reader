@@ -134,7 +134,7 @@ Returns the reverse complementary of a sequence
 
 =cut
 
-sub rc {
+sub rc($) {
     my $self = undef;
     if ( ref($_[0]) eq 'FASTX::ScriptHelper' ) {
       $self = shift @_;
