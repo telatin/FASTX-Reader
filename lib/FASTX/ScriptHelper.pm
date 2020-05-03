@@ -14,7 +14,7 @@ use JSON::PP;
 use Capture::Tiny qw(capture);
 
 
-$FASTX::PE::VERSION = '0.1.0';
+$FASTX::ScriptHelper::VERSION = '0.1.0';
 
 our @ISA = qw(Exporter);
 our @EXPORT = qw(rc fu_printfasta fu_printfastq verbose);
