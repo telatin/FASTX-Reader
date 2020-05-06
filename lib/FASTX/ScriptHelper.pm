@@ -3,7 +3,7 @@ package FASTX::ScriptHelper;
 
 use 5.012;
 use warnings;
-
+use File::Fetch;
 use Carp qw(confess cluck);
 use Data::Dumper;
 use FASTX::Reader;
@@ -12,7 +12,7 @@ use File::Spec;
 use Term::ANSIColor qw(color);
 use JSON::PP;
 use Capture::Tiny qw(capture);
-
+use Time::HiRes qw( time );
 
 $FASTX::ScriptHelper::VERSION = '0.1.0';
 
@@ -62,11 +62,15 @@ sub new {
     };
     my $object = bless $self, $class;
 
+    # Regular log file
     if (defined $self->{logfile}) {
       verbose($self, "Ready to log in $object->{logfile}");
       open my $logfh, '>', "$object->{logfile}"  || confess("ERROR: Unable to write log file to $object->{logfile}\n");
       $object->{logfh} = $logfh;
       $object->{do_log} = 1;
+    } else {
+      # Set {logfh} to Stderr, but do not set {do_log}
+      $object->{logfh} = *STDERR;
     }
 
     return $object;
@@ -216,48 +220,21 @@ sub verbose {
   my $variable_name = $reference_name // 'data';
   my $timestamp = _getTimeStamp();
   if ( (defined $self and $self->{verbose} ) or (defined $main::opt_verbose and $main::opt_verbose) ) {
+    # Print
     if (defined $self->{do_log}) {
-      say {$self->{logfh}} "[$timestamp] $message";
-      say {$self->{logfh}}  Data::Dumper->Dump([$reference], [$variable_name])
-        if (defined $reference);
-    } 
+      $self->writelog($message, $reference, $reference_name);
+    }
     say STDERR color('cyan'),"[$timestamp]", color('reset'), " $message";
     say STDERR color('magenta'), Data::Dumper->Dump([$reference], [$variable_name])
         if (defined $reference);
   } else {
+    # No --verbose, don't print
     return -1;
   }
 
 }
-=head2 run
-
-  arguments: command, [%options]
-
-Execute a command. Options are:
-  * candie BOOL, to tolerate non zero exit
-
-=cut
-
-sub run  {
-  my $self = undef;
-  if ( ref($_[0]) eq 'FASTX::ScriptHelper' ) {
-    $self = shift @_;
-  }
-  my ($command, $options) = @_;
-
-  
-
-  my $cmd = _runCmd($command);
-  if ($cmd->{exit}) {
-    $cmd->{failed} = 1;
-    if (! $options->{candie}) {
-      confess("Execution of an external command failed:\n$command");
-    }
-  }
-  return ($cmd);
 
 
-}
 =head2 writelog
 
   arguments: message, []
@@ -271,14 +248,100 @@ sub writelog  {
   if ( ref($_[0]) eq 'FASTX::ScriptHelper' ) {
     $self = shift @_;
   }
-  my ($message, $reference) = @_;
 
-  if (defined $self and $self->{do_log}) {
-    say {$self->{logfh}} "[", _getTimeStamp() ,"] $message";
+  my ($message, $reference, $reference_name) = @_;
+  my $variable_name = $reference_name // 'data';
+  my $timestamp = _getTimeStamp();
+  say {$self->{logfh}} "[$timestamp] $message";
+  say {$self->{logfh}}  Data::Dumper->Dump([$reference], [$variable_name]) if (defined $reference);
+  
+
+}
+
+
+
+=head2 download
+
+  arguments: url, destination
+
+Download a remote file
+
+=cut
+
+sub download  {
+  my $begin_time = time();
+  my $self = undef;
+  if ( ref($_[0]) eq 'FASTX::ScriptHelper' ) {
+    $self = shift @_;
+  }
+
+  my ($url, $destination) = @_;
+  if (defined $self->{do_log}) {
+      $self->writelog( qq(Downloading "$url") );
+  }
+
+ 
+  my $downloader = File::Fetch->new(uri => $url);
+  my $file_path = $downloader->fetch( to => $destination ) or confess($downloader->error);
+  my $end_time = time();
+  say Dumper $downloader;
+  my $duration = sprintf("%.2fs", $end_time - $begin_time);
+  return $file_path;
+}
+=head2 run
+
+  arguments: command, [%options]
+
+Execute a command. Options are:
+  * candie BOOL, to tolerate non zero exit
+  * logall BOOL, save to log STDOUT and STDERR
+
+=cut
+
+sub run  {
+  my $begin_time = time();
+  my $time_stamp = _getTimeStamp();
+  my $self = undef;
+  if ( ref($_[0]) eq 'FASTX::ScriptHelper' ) {
+    $self = shift @_;
+  }
+  my %valid_attributes = (
+    candie => 1,
+    logall => 1,
+  );
+  
+
+  my ($command, $options) = @_;
+  _validate_attributes(\%valid_attributes, $options, 'run');
+  if (defined $self) {
+    $self->writelog("Shell> $command");
   }
 
 
+  my $cmd = _runCmd($command);
+  if ($cmd->{exit}) {
+    $cmd->{failed} = 1;
+    if (! $options->{candie}) {
+      confess("Execution of an external command failed:\n$command");
+    }
+  }
+  my $end_time = time();
+  $cmd->{time} = $time_stamp;
+  $cmd->{duration} = sprintf("%.2fs", $end_time - $begin_time);
+  if (defined $self) {
+    if ($options->{logall}) {
+      $self->writelog("    +> Output: $cmd->{stdout}");
+      $self->writelog("    +> Messages: $cmd->{stderr}");
+    }
+    $self->writelog("    +> Elapsed time: $cmd->{duration}; Exit status: $cmd->{exit};");
+
+  }
+
+  return ($cmd);
+
+
 }
+
 
 sub _getTimeStamp {
 
@@ -288,6 +351,15 @@ sub _getTimeStamp {
     return $timestamp;
 }
 
+
+sub _validate_attributes {
+  my ($hash_ref, $options, $title) = @_;
+
+  for my $attr (sort keys %{ $options } ) {
+    confess "Invalid attribute '$attr' used calling routine '$title'\n" if (not defined ${ $hash_ref}{ $attr });
+  }
+  return undef;
+}
 sub _runCmd(@) {
   if ( ref($_[0]) eq 'FASTX::ScriptHelper' ) {
      shift @_;
@@ -298,13 +370,13 @@ sub _runCmd(@) {
 
   my ($stdout, $stderr, $exit) = capture {
     system( @cmd );
-  }; 
+  };
   chomp($stderr);
   chomp($stdout);
   $output->{stdout} = $stdout;
   $output->{stderr} = $stderr;
   $output->{exit} = $exit;
-  
+
   return $output;
 }
 
