@@ -47,5 +47,5 @@ while (my $seq = $fasta_reader->getRead() ) {
 
 ### Contributors
 
-  - Andrea Telatin
-  - Fabrizio Levorin
+* Andrea Telatin
+* Fabrizio Levorin
