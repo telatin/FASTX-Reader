@@ -7,7 +7,7 @@
 
 ## A Perl module to parse FASTA and FASTQ files
 
-This is a package built using Heng Li's _readfq()_ subroutine ([link](https://github.com/lh3/readfq)). For updated documentation, please visit *[Meta::CPAN](https://metacpan.org/pod/FASTX::Reader)*.
+This is a package built using Heng Li's _readfq()_ subroutine ([link](https://github.com/lh3/readfq)). For updated documentation, please visit _[Meta::CPAN](https://metacpan.org/pod/FASTX::Reader)_.
 
 The FASTX::Reader module also ships _fqc_ (FASTQ counter), a program to quickly count the number of sequences in a set of FASTA/FASTQ files, also .gz compressed.
 
@@ -47,5 +47,5 @@ while (my $seq = $fasta_reader->getRead() ) {
 
 ### Contributors
 
-- Andrea Telatin
-- Fabrizio Levorin
+  - Andrea Telatin
+  - Fabrizio Levorin
