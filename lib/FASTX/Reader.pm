@@ -3,8 +3,11 @@ use 5.012;
 use warnings;
 use Carp qw(confess);
 use Data::Dumper;
+<<<<<<< HEAD
 $Data::Dumper::Sortkeys = 1;
 use File::Basename;
+=======
+>>>>>>> 166d528077938aaaf4ea2e186f5935aa991e8568
 $FASTX::Reader::VERSION = '0.94';
 require Exporter;
 our @ISA = qw(Exporter);

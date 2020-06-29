@@ -2,8 +2,10 @@ This is the changelog for FASTX::Reader. Version prior to v 0.1 are preliminary 
 Some APIs *can change* with the release of the first stable release (v 1.0).
 Version 0.61 has been available via BioConda
 
-0.94  2020-06-08
-  *
+0.94  2020-06-01
+  * Accessory script updates
+  * Requirements: File::Fetch
+
 0.93  2020-05-29
   * Markdown updated
 
