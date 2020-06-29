@@ -14,7 +14,7 @@ use JSON::PP;
 use Capture::Tiny qw(capture);
 use Time::HiRes qw( time );
 
-$FASTX::ScriptHelper::VERSION = '0.1.0';
+$FASTX::ScriptHelper::VERSION = '0.1.2';
 
 our @ISA = qw(Exporter);
 our @EXPORT = qw(rc fu_printfasta fu_printfastq verbose);
@@ -254,7 +254,7 @@ sub writelog  {
   my $timestamp = _getTimeStamp();
   say {$self->{logfh}} "[$timestamp] $message";
   say {$self->{logfh}}  Data::Dumper->Dump([$reference], [$variable_name]) if (defined $reference);
-  
+
 
 }
 
@@ -280,7 +280,7 @@ sub download  {
       $self->writelog( qq(Downloading "$url") );
   }
 
- 
+
   my $downloader = File::Fetch->new(uri => $url);
   my $file_path = $downloader->fetch( to => $destination ) or confess($downloader->error);
   my $end_time = time();
@@ -309,7 +309,7 @@ sub run  {
     candie => 1,
     logall => 1,
   );
-  
+
 
   my ($command, $options) = @_;
   _validate_attributes(\%valid_attributes, $options, 'run');

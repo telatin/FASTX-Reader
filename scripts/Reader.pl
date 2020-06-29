@@ -10,8 +10,8 @@ use FASTX::Reader;
 # Print splash screen
 print STDERR color('bold'), "TEST FASTA/FASTQ READER\n", color('reset');
 print STDERR color('bold'), "Read FASTA/FASTQ files, printing them back to the user\n", color('reset');
-print STDERR "Usage: $0 FILE1 FILE2 ... FILEn\n\n";
-
+print STDERR "Usage: $0 FILE1 FILE2 ... FILEn\n";
+print STDERR 'version: ', $FASTX::Reader::VERSION, "\n\n";
 # Read two samples files if the user didnt provide any filename
 push(@ARGV,"$Bin/../data/test.fastq", "$Bin/../data/test.fasta" )
   unless ($ARGV[0]);

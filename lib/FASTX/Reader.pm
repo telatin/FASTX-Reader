@@ -3,7 +3,9 @@ use 5.012;
 use warnings;
 use Carp qw(confess);
 use Data::Dumper;
-$FASTX::Reader::VERSION = '0.93';
+$Data::Dumper::Sortkeys = 1;
+use File::Basename;
+$FASTX::Reader::VERSION = '0.94';
 require Exporter;
 our @ISA = qw(Exporter);
 #ABSTRACT: A lightweight module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.
@@ -18,7 +20,7 @@ use constant GZIP_SIGNATURE => pack('C3', 0x1f, 0x8b, 0x08);
   my $fasta_reader = FASTX::Reader->new({ filename => "$filepath" });
 
   while (my $seq = $fasta_reader->getRead() ) {
-    print $seq->{name}, "\t", $seq->{seq}, "\t", $seq->{qual}, "\n";
+    f $seq->{name}, "\t", $seq->{seq}, "\t", $seq->{qual}, "\n";
   }
 
 =head1 BUILD TEST
@@ -71,26 +73,27 @@ sub new {
         loadseqs  => $args->{loadseqs},
     };
 
+    $self->{aux} = [undef];
 
-    my $object = bless $self, $class;
 
     # Initialize auxiliary array for getRead
-    $object->{aux} = [undef];
-    $object->{compressed} = 0;
+
+    $self->{compressed} = 0;
 
     # Check if a filename was provided and not {{STDIN}}
     # uncoverable branch false
-
+    my $fh;
     if (defined $self->{filename} and $self->{filename} ne '{{STDIN}}') {
-      open my $fh, '<', $self->{filename} or confess "Unable to read file ", $self->{filename}, "\n";
-      read( $fh, my $magic_byte, 4 );
-      close $fh;
+      open my $initial_fh, '<', $self->{filename} or confess "Unable to read file ", $self->{filename}, "\n";
+      read( $initial_fh, my $magic_byte, 4 );
+      close $initial_fh;
 
       # See: __BioX::Seq::Stream__ for GZIP (and other) compressed file reader
       if (substr($magic_byte,0,3) eq GZIP_SIGNATURE) {
-         $object->{compressed} = 1;
+
+         $self->{compressed} = 1;
          our $GZIP_BIN = _which('pigz', 'gzip');
-         close $fh;
+         #close $fh;
          if (! defined $GZIP_BIN) {
            require IO::Uncompress::Gunzip;
            $fh = IO::Uncompress::Gunzip->new($self->{filename}, MultiStream => 1);
@@ -98,16 +101,19 @@ sub new {
 	         open  $fh, '-|', "$GZIP_BIN -dc $self->{filename}" or confess "Error opening gzip file ", $self->{filename}, ": $!\n";
          }
       } elsif (-B $self->{filename}) {
+
           # BINARY FILE NOT SUPPORTED?
-          close $fh;
+          #close $fh;
           $self->{fh}      = undef;
           $self->{status}  = 1;
           $self->{message} = 'Binary file not supported';
       } else {
-	       close $fh;
+
+	       #close $fh;
       	 open $fh,  '<:encoding(utf8)', $self->{filename} or confess "Unable to read file ", $self->{filename}, ": ", $!, "\n";
       }
-      $object->{fh} = $fh;
+      $self->{fh} = $fh;
+
     } else {
       $self->{fh} = \*STDIN;
       if ($self->{loadseqs}) {
@@ -115,12 +121,14 @@ sub new {
       }
     }
 
+
+
+    my $object = bless $self, $class;
     if ($self->{loadseqs}) {
       _load_seqs($self);
-
     }
-
     return $object;
+
 }
 
 =head2 getRead()
@@ -150,75 +158,138 @@ quality if the file is FASTQ
 
 =cut
 
-
-sub getRead {
+sub Flevorin_getRead {
   my $self   = shift;
-  #my ($fh, $aux) = @_;
-  #@<instrument>:<run number>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos>:<UMI> <read>:<is filtered>:<control number>:<index>
   my $fh = $self->{fh};
 
   return undef if (defined $self->{status} and $self->{status} == 0);
 
-  my $aux = $self->{aux};
+  #  my $aux = $self->{aux};
+  my $curpos = $self->{curpos};
   my $return;
-  @$aux = [undef, 0] if (!(@$aux));	# remove deprecated 'defined'
-  return if ($aux->[1]);
-  # uncoverable branch true
-  if (!defined($aux->[0])) {
-      while (<$fh>) {
-          chomp;
-          if (substr($_, 0, 1) eq '>' || substr($_, 0, 1) eq '@') {
-              $aux->[0] = $_;
+  my $seq;
+  my $dim = -s $fh;
+
+  return if ( $curpos == $dim);
+
+  seek($fh, $curpos, 0);
+
+  # Nome sequenza e commento
+  while (<$fh>) {
+    chomp;
+    if (substr($_, 0, 1) eq '>' || substr($_, 0, 1) eq '@') {
+      my ($name, $comm) = /^.(\S+)(?:\s+)(.+)/ ? ($1, $2) : /^.(\S+)/ ? ($1, '') : ('', '');
+      $return->{name} = $name;
+      $return->{comment} = $comm;
+      last;
+    }
+  }
+
+  # Sequenza
+  while (<$fh>) {
+  chomp;
+  my $c = substr($_, 0, 1);
+  if ($c eq '>' || $c eq '@' || $c eq '+') {
+  last;
+  }
+  $self->{curpos} = tell;
+  $seq .= $_;
+  }
+  $return->{seq} = $seq;
+
+  return $return;
+}
+
+sub getRead {
+  my $self   = shift;
+  state $line;
+
+  $self->{counter_fake}++;
+  if ($self->{counter_fake} < 4) {
+    say Dumper $self;
+  }
+  #@<instrument>:<run number>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos>:<UMI> <read>:<is filtered>:<control number>:<index>
+
+
+  return undef if (defined $self->{status} and $self->{status} == 0);
+
+  #my $aux = $self->{aux};
+  my $sequence_data;
+  @{ $self->{aux} } = [undef, 0] if (!(@{ $self->{aux} }));
+
+
+  if ($self->{aux}->[1]) {
+    $self->{return_0}++;
+  }
+
+  if (!defined($self->{aux}->[0])) {
+      while ($line = readline($self->{fh})) {
+
+          chomp($line);
+          if (substr($line, 0, 1) eq '>' || substr($line, 0, 1) eq '@') {
+              $self->{aux}->[0] = $line;
               last;
           }
       }
-      if (!defined($aux->[0])) {
-          $aux->[1] = 1;
+      if (!defined($self->{aux}->[0])) {
+          $self->{aux}->[1] = 1;
+          $self->{return_1}++;
           return;
       }
   }
 
-  #my $comm = /^.\S+\s+(.*)/? $1 : ''; # retain "comment"
-  # Comments can have more spaces:    xx
-  my ($name, $comm) = /^.(\S+)(?:\s+)(.+)/ ? ($1, $2) :
-	                    /^.(\S+)/ ? ($1, '') : ('', '');
 
+  # Comments can have more spaces:
+  return unless defined $line;
+  my ($name, $comm) = $line=~/^.(\S+)(?:\s+)(.+)/ ? ($1, $2) :
+	                    $line=~/^.(\S+)/ ? ($1, '') : ('?', '');
   my $seq = '';
   my $c;
-  $aux->[0] = undef;
-  while (<$fh>) {
-      chomp;
-      $c = substr($_, 0, 1);
+  $self->{aux}->[0] = undef;
+  while ($line = readline($self->{fh})) {
+     # PARSE SEQx
+      chomp($line);
+      $c = substr($line, 0, 1);
       last if ($c eq '>' || $c eq '@' || $c eq '+');
-      $seq .= $_;
+      $seq .= $line;
   }
-  $aux->[0] = $_;
-  $aux->[1] = 1 if (!defined($aux->[0]));
-  $return->{name} = $name;
-  $return->{comment} = $comm;
-  $return->{seq} = $seq;
+  $self->{aux}->[0] = $line;
+  $self->{aux}->[1] = 1 if (!defined($self->{aux}->[0]));
+  $sequence_data->{name} = $name;
+  $sequence_data->{comment} = $comm;
+  $sequence_data->{seq} = $seq;
   $self->{counter}++;
-  return $return if ($c ne '+');
+  # Return FASTA
+   if ($c ne '+') {
+    $self->{return_fasta1}++;
+    return $sequence_data;
+  }
   my $qual = '';
-  while (<$fh>) {
-      chomp;
-      $qual .= $_;
+
+
+  while ($line = readline($self->{fh})) {
+      # PARSE QUALITY
+      chomp($line);
+      $qual .= $line;
       if (length($qual) >= length($seq)) {
-          $aux->[0] = undef;
-          $return->{name} = $name;
-          $return->{seq} = $seq;
-          $return->{comment} = $comm;
-          $return->{qual} = $qual;
-          #$self->{counter}+=100;
-          return $return;
+          $self->{aux}->[0] = undef;
+          $sequence_data->{name} = $name;
+          $sequence_data->{seq} = $seq;
+          $sequence_data->{comment} = $comm;
+          $sequence_data->{qual} = $qual;
+          # return FASTQ
+          $self->{return_fastq}++;
+          return $sequence_data;
       }
   }
-  $aux->[1] = 1;
-  $return->{name} = $name;
-  $return->{seq} = $seq;
-  $return->{comment} = $comm;
+  $self->{aux}->[1] = 1;
+  $sequence_data->{name}    = $name;
+  $sequence_data->{seq}     = $seq;
+  $sequence_data->{comment} = $comm;
   $self->{counter}++;
-  return $return;
+  # return FASTA
+  $self->{return_fasta2}++;
+  return $sequence_data;
 
 }
 
@@ -419,13 +490,13 @@ sub getFileFormat {
   my $self   = shift;
   my ($filename) = shift;
   return 0 if (not defined $filename);
-  
+
   open my $fh, '<', $filename or confess "Unable to read file ", $filename, "\n";
   read( $fh, my $magic_byte, 4 );
   close $fh;
 
   if (substr($magic_byte,0,3) eq GZIP_SIGNATURE) {
-   
+
     if (! defined $self->{GZIP_BIN}) {
       require IO::Uncompress::Gunzip;
       $fh = IO::Uncompress::Gunzip->new($filename, MultiStream => 1);
