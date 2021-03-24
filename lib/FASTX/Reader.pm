@@ -5,7 +5,7 @@ use Carp qw(confess);
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 use File::Basename;
-$FASTX::Reader::VERSION = '0.95';
+$FASTX::Reader::VERSION = '1.0.0';
 require Exporter;
 our @ISA = qw(Exporter);
 #ABSTRACT: A simple module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.
@@ -58,6 +58,7 @@ name as key and its sequence as value.
 sub new {
     # Instantiate object
     my ($class, $args) = @_;
+    my $self = bless {} => $class;
 
     if (defined $args->{loadseqs}) {
       if ($args->{loadseqs} eq 'name' or $args->{loadseqs} eq 'names' ) {
@@ -68,21 +69,16 @@ sub new {
         confess("attribute <loadseqs> should be 'name' or 'seq' to specify the key of the hash.");
       }
     }
-    my $self = {
-        filename  => $args->{filename},
-        loadseqs  => $args->{loadseqs},
-    };
-
-    $self->{aux} = [undef];
-
-
-    # Initialize auxiliary array for getRead
-
+    $self->{filename} = $args->{filename};
+    $self->{loadseqs} = $args->{loadseqs};
+    $self->{aux}      = [undef];
     $self->{compressed} = 0;
+    $self->{fh}       = undef;
+
 
     # Check if a filename was provided and not {{STDIN}}
     # uncoverable branch false
-    my $fh;
+    
     if (defined $self->{filename} and $self->{filename} ne '{{STDIN}}') {
       open my $initial_fh, '<', $self->{filename} or confess "Unable to read file ", $self->{filename}, "\n";
       read( $initial_fh, my $magic_byte, 4 );
@@ -95,9 +91,11 @@ sub new {
          #close $fh;
          if (! defined $GZIP_BIN) {
            require IO::Uncompress::Gunzip;
-           $fh = IO::Uncompress::Gunzip->new($self->{filename}, MultiStream => 1);
+           my $fh = IO::Uncompress::Gunzip->new($self->{filename}, MultiStream => 1);
+           $self->{fh} = $fh;
          } else {
-	         open  $fh, '-|', "$GZIP_BIN -dc $self->{filename}" or confess "Error opening gzip file ", $self->{filename}, ": $!\n";
+	         open  my $fh, '-|', "$GZIP_BIN -dc $self->{filename}" or confess "Error opening gzip file ", $self->{filename}, ": $!\n";
+           $self->{fh} = $fh;
          }
       } elsif (-B $self->{filename}) {
 
@@ -109,9 +107,10 @@ sub new {
       } else {
 
 	       #close $fh;
-      	 open $fh,  '<:encoding(utf8)', $self->{filename} or confess "Unable to read file ", $self->{filename}, ": ", $!, "\n";
+      	 open (my $fh,  '<:encoding(utf8)', $self->{filename}) or confess "Unable to read file ", $self->{filename}, ": ", $!, "\n";
+         $self->{fh} = $fh;
       }
-      $self->{fh} = $fh;
+
 
     } else {
       $self->{fh} = \*STDIN;
@@ -122,11 +121,12 @@ sub new {
 
 
 
-    my $object = bless $self, $class;
+    
     if ($self->{loadseqs}) {
       _load_seqs($self);
     }
-    return $object;
+    
+    return $self;
 
 }
 
@@ -157,56 +157,52 @@ quality if the file is FASTQ
 
 =cut
 
-sub _Flevorin_getRead {
-  my $self   = shift;
-  my $fh = $self->{fh};
+# sub _Flevorin_getRead {
+#   my $self   = shift;
+#   my $fh = $self->{fh};
 
-  return undef if (defined $self->{status} and $self->{status} == 0);
+#   return undef if (defined $self->{status} and $self->{status} == 0);
 
-  #  my $aux = $self->{aux};
-  my $curpos = $self->{curpos};
-  my $return;
-  my $seq;
-  my $dim = -s $fh;
+#   #  my $aux = $self->{aux};
+#   my $curpos = $self->{curpos};
+#   my $return;
+#   my $seq;
+#   my $dim = -s $fh;
 
-  return if ( $curpos == $dim);
+#   return if ( $curpos == $dim);
 
-  seek($fh, $curpos, 0);
+#   seek($fh, $curpos, 0);
 
-  # Nome sequenza e commento
-  while (<$fh>) {
-    chomp;
-    if (substr($_, 0, 1) eq '>' || substr($_, 0, 1) eq '@') {
-      my ($name, $comm) = /^.(\S+)(?:\s+)(.+)/ ? ($1, $2) : /^.(\S+)/ ? ($1, '') : ('', '');
-      $return->{name} = $name;
-      $return->{comment} = $comm;
-      last;
-    }
-  }
+#   # Nome sequenza e commento
+#   while (<$fh>) {
+#     chomp;
+#     if (substr($_, 0, 1) eq '>' || substr($_, 0, 1) eq '@') {
+#       my ($name, $comm) = /^.(\S+)(?:\s+)(.+)/ ? ($1, $2) : /^.(\S+)/ ? ($1, '') : ('', '');
+#       $return->{name} = $name;
+#       $return->{comment} = $comm;
+#       last;
+#     }
+#   }
 
-  # Sequenza
-  while (<$fh>) {
-  chomp;
-  my $c = substr($_, 0, 1);
-  if ($c eq '>' || $c eq '@' || $c eq '+') {
-  last;
-  }
-  $self->{curpos} = tell;
-  $seq .= $_;
-  }
-  $return->{seq} = $seq;
+#   # Sequenza
+#   while (<$fh>) {
+#   chomp;
+#   my $c = substr($_, 0, 1);
+#   if ($c eq '>' || $c eq '@' || $c eq '+') {
+#   last;
+#   }
+#   $self->{curpos} = tell;
+#   $seq .= $_;
+#   }
+#   $return->{seq} = $seq;
 
-  return $return;
-}
+#   return $return;
+# }
 
 sub getRead {
   my $self   = shift;
-  state $line;
+  #tate $self->{line};
 
-  $self->{counter_fake}++;
-  if ($self->{counter_fake} < 4) {
-    say Dumper $self;
-  }
   #@<instrument>:<run number>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos>:<UMI> <read>:<is filtered>:<control number>:<index>
 
 
@@ -222,11 +218,11 @@ sub getRead {
   }
 
   if (!defined($self->{aux}->[0])) {
-      while ($line = readline($self->{fh})) {
+      while ($self->{line} = readline($self->{fh})) {
 
-          chomp($line);
-          if (substr($line, 0, 1) eq '>' || substr($line, 0, 1) eq '@') {
-              $self->{aux}->[0] = $line;
+          chomp($self->{line});
+          if (substr($self->{line}, 0, 1) eq '>' || substr($self->{line}, 0, 1) eq '@') {
+              $self->{aux}->[0] = $self->{line};
               last;
           }
       }
@@ -239,20 +235,20 @@ sub getRead {
 
 
   # Comments can have more spaces:
-  return unless defined $line;
-  my ($name, $comm) = $line=~/^.(\S+)(?:\s+)(.+)/ ? ($1, $2) :
-	                    $line=~/^.(\S+)/ ? ($1, '') : ('?', '');
+  return unless defined $self->{line};
+  my ($name, $comm) = $self->{line}=~/^.(\S+)(?:\s+)(.+)/ ? ($1, $2) :
+	                    $self->{line}=~/^.(\S+)/ ? ($1, '') : ('?', '');
   my $seq = '';
   my $c;
   $self->{aux}->[0] = undef;
-  while ($line = readline($self->{fh})) {
+  while ($self->{line} = readline($self->{fh})) {
      # PARSE SEQx
-      chomp($line);
-      $c = substr($line, 0, 1);
+      chomp($self->{line});
+      $c = substr($self->{line}, 0, 1);
       last if ($c eq '>' || $c eq '@' || $c eq '+');
-      $seq .= $line;
+      $seq .= $self->{line};
   }
-  $self->{aux}->[0] = $line;
+  $self->{aux}->[0] = $self->{line};
   $self->{aux}->[1] = 1 if (!defined($self->{aux}->[0]));
   $sequence_data->{name} = $name;
   $sequence_data->{comment} = $comm;
@@ -266,10 +262,10 @@ sub getRead {
   my $qual = '';
 
 
-  while ($line = readline($self->{fh})) {
+  while ($self->{line} = readline($self->{fh})) {
       # PARSE QUALITY
-      chomp($line);
-      $qual .= $line;
+      chomp($self->{line});
+      $qual .= $self->{line};
       if (length($qual) >= length($seq)) {
           $self->{aux}->[0] = undef;
           $sequence_data->{name} = $name;

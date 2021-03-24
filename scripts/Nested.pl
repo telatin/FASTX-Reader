@@ -7,6 +7,8 @@ use FindBin qw($RealBin);
 use lib "$RealBin/../lib/";
 use FASTX::Reader;
 use File::Basename;
+
+say $FASTX::Reader::VERSION;
 # Print splash screen
 print STDERR color('bold'), "TEST FASTA/FASTQ READER\n", color('reset');
 print STDERR color('bold'), "Read FASTA/FASTQ files, printing them back to the user\n", color('reset');
