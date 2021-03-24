@@ -8,7 +8,7 @@ use File::Basename;
 $FASTX::Reader::VERSION = '0.95';
 require Exporter;
 our @ISA = qw(Exporter);
-#ABSTRACT: A lightweight module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.
+#ABSTRACT: A simple module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.
 
 use constant GZIP_SIGNATURE => pack('C3', 0x1f, 0x8b, 0x08);
 
@@ -90,7 +90,6 @@ sub new {
 
       # See: __BioX::Seq::Stream__ for GZIP (and other) compressed file reader
       if (substr($magic_byte,0,3) eq GZIP_SIGNATURE) {
-
          $self->{compressed} = 1;
          our $GZIP_BIN = _which('pigz', 'gzip');
          #close $fh;
@@ -282,6 +281,9 @@ sub getRead {
           return $sequence_data;
       }
   }
+  # PROCH
+  close $self->{fh};
+
   $self->{aux}->[1] = 1;
   $sequence_data->{name}    = $name;
   $sequence_data->{seq}     = $seq;
@@ -496,7 +498,7 @@ sub getFileFormat {
   close $fh;
 
   if (substr($magic_byte,0,3) eq GZIP_SIGNATURE) {
-
+    # GZIPPED FILE
     if (! defined $self->{GZIP_BIN}) {
       require IO::Uncompress::Gunzip;
       $fh = IO::Uncompress::Gunzip->new($filename, MultiStream => 1);
@@ -504,6 +506,7 @@ sub getFileFormat {
 	    open  $fh, '-|', "$self->{GZIP_BIN} -dc $filename" or confess "Error opening gzip file ", $filename, ": $!\n";
     }
   } else {
+    # NOT COMPRESSED
     open  $fh, '<:encoding(utf8)', "$filename" || confess "Unable to read $filename\n$!\n";
   }
   my $first = readline($fh);
