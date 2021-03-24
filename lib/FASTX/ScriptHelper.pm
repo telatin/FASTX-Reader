@@ -13,7 +13,7 @@ use Term::ANSIColor qw(color);
 use JSON::PP;
 use Capture::Tiny qw(capture);
 use Time::HiRes qw( time );
-
+use Scalar::Util qw( blessed refaddr reftype);
 $FASTX::ScriptHelper::VERSION = '0.1.2';
 
 our @ISA = qw(Exporter);
@@ -216,7 +216,21 @@ sub verbose {
   if ( ref($_[0]) eq 'FASTX::ScriptHelper' ) {
     $self = shift @_;
   }
-  my ($message, $reference, $reference_name) = @_;
+  my ($message, $reference, $reference_name, @remainder) = @_;
+  if ($remainder[0]) {
+    $message .= $reference . $reference_name . join('', @remainder);
+    $reference = undef;
+    $reference_name = undef;
+  } elsif (reftype $reference == undef) {
+    # Mistakenly passed list instead of string
+    $message .= $reference;
+    if (defined $reference_name) {
+      $message .= $reference_name;
+      $reference_name = undef;
+    }
+    $reference = undef;
+
+  }
   my $variable_name = $reference_name // 'data';
   my $timestamp = _getTimeStamp();
   if ( (defined $self and $self->{verbose} ) or (defined $main::opt_verbose and $main::opt_verbose) ) {
