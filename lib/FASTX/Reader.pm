@@ -157,7 +157,7 @@ quality if the file is FASTQ
 
 =cut
 
-sub Flevorin_getRead {
+sub _Flevorin_getRead {
   my $self   = shift;
   my $fh = $self->{fh};
 

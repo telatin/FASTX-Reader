@@ -221,7 +221,7 @@ sub verbose {
     $message .= $reference . $reference_name . join('', @remainder);
     $reference = undef;
     $reference_name = undef;
-  } elsif (reftype $reference == undef) {
+  } elsif (defined $reference and reftype $reference eq undef) {
     # Mistakenly passed list instead of string
     $message .= $reference;
     if (defined $reference_name) {
