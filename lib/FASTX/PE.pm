@@ -1,4 +1,6 @@
 package FASTX::PE;
+#ABSTRACT: A Paired-End FASTQ files reader, based on FASTX::Reader.
+
 use 5.012;
 use warnings;
 use Carp qw(confess cluck);
@@ -6,8 +8,9 @@ use Data::Dumper;
 use FASTX::Reader;
 use File::Basename;
 $FASTX::PE::VERSION = $FASTX::Reader::VERSION;
-#ABSTRACT: A Paired-End FASTQ files reader, based on FASTX::Reader.
 
+my $for_suffix_re = '(/1|_R?1)';
+my $rev_suffix_re = '(/2|_R?2)';
 
 =head1 SYNOPSIS
 
@@ -40,7 +43,7 @@ Initialize a new FASTX::Reader object passing 'B<filename>' argument for the fir
 and optionally 'B<rev>' for the second (otherwise can be guessed substituting 'R1' with 'R2' and
 '_1.' with '_2.')
 
-  my $pairend = FASTX::Reader->new({ 
+  my $pairend = FASTX::Reader->new({
       filename => "$file_R1",
       rev      => "$file_R2"
   });
@@ -124,14 +127,14 @@ sub new {
           $rev =~s/$self->{tag1}/$self->{tag2}/;
           $rev = dirname($self->{basename}) . $rev;
         } else {
-          
+
           $rev =~s/_R1/_R2/;
           say STDERR "R2 not provided, autoguess (_R1/_R2): $rev" if ($self->{verbose});
           if ($rev eq basename($self->{filename}) ) {
               $rev =~s/_1\./_2./;
               say STDERR "R2 not provided for $self->{filename}, now autoguess (_1/_2): $rev" if ($self->{verbose});
           }
- 
+
           $rev = dirname($self->{filename}) . '/' . $rev;
         }
 
@@ -151,7 +154,7 @@ sub new {
       }
 
       $self->{R1}  = FASTX::Reader->new({ filename => "$self->{filename}"});
-      $self->{R2}  = FASTX::Reader->new({ filename => "$self->{rev}"}) 
+      $self->{R2}  = FASTX::Reader->new({ filename => "$self->{rev}"})
         if (not $self->{interleaved});
 
     }
@@ -171,7 +174,7 @@ The returned object has these attributes:
 
 header of the sequence (identifier)
 
-=item I<comment1> and I<comment2> 
+=item I<comment1> and I<comment2>
 
 any string after the first whitespace in the header, for the first and second paired read respectively.
 
@@ -179,7 +182,7 @@ any string after the first whitespace in the header, for the first and second pa
 
 DNA sequence for the first and the second pair, respectively
 
-=item I<qual1> and I<qual2> 
+=item I<qual1> and I<qual2>
 
 quality for the first and the second pair, respectively
 
@@ -204,18 +207,33 @@ sub getReads {
     $r2 = $self->{R2}->getRead();
   }
 
-  if (! defined $r1->{name} or !defined $r2->{name}) {
+  if (! defined $r1->{name} and !defined $r2->{name}) {
+    return undef;
+  } elsif (! defined $r1->{name} or !defined $r2->{name}) {
+    my $r = $r1->{name} // $r2->{name};
+    $self->{error} = "Premature termination, missing read mate for \"$r\"";
     return undef;
   }
 
+  my $name_1;
+  my $name_2;
+
   if ($self->{nocheck} != 1) {
-    if ($r1->{name} ne  $r2->{name}) {
+    $name_1 = $r1->{name};
+    $name_2 = $r2->{name};
+    $name_1 =~s/${for_suffix_re}$//;
+    $name_2 =~s/${rev_suffix_re}$//;
+    if ($name_1 ne $name_2) {
       confess("Read name different in PE:\n[$r1->{name}] !=\n[$r2->{name}]\n");
+    }
+
+    if (not $r1->{qual} or  not $r2->{qual}) {
+      confess("Missing quality for one of the two reads ($name_1, $name_2)");
     }
   }
 
 
-  $pe->{name} = $r1->{name};
+  $pe->{name} = $name_1 // $r1->{name};
   $pe->{seq1} = $r1->{seq};
   $pe->{qual1} = $r1->{qual};
 
@@ -256,4 +274,3 @@ sub _rc {
   return $sequence;
 }
 1;
-
