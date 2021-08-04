@@ -6,6 +6,7 @@ use FASTX::ScriptHelper;
 use File::Temp qw/ tempfile tempdir /;
 use Data::Dumper;
 use File::Spec;
+open STDERR, '>', File::Spec->devnull();
 
 my (undef, $log_filename) = tempfile('HELPERTEST_XXXXXXXX', OPEN => 0);
 
