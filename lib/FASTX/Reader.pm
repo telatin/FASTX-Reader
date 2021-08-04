@@ -5,7 +5,7 @@ use Carp qw(confess);
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 use File::Basename;
-$FASTX::Reader::VERSION = '1.0.1';
+$FASTX::Reader::VERSION = '1.1.0';
 require Exporter;
 our @ISA = qw(Exporter);
 #ABSTRACT: A simple module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.
@@ -25,11 +25,12 @@ use constant GZIP_SIGNATURE => pack('C3', 0x1f, 0x8b, 0x08);
 
 =head1 BUILD TEST
 
-=for html <p><a href="https://travis-ci.org/telatin/FASTQ-Parser"><img src="https://travis-ci.org/telatin/FASTQ-Parser.svg?branch=master"></a></p>
+=for html <p>
+<a href="https://github.com/telatin/FASTQ-Parser/actions/workflows/perl-test.yml" title="CI tests">
+<img src="https://github.com/telatin/FASTQ-Parser/actions/workflows/perl-test.yml/badge.svg" alt="CI Badge"></a></p>
 
-Each GitHub release of the module is tested by L<Travis-CI|https://travis-ci.org/telatin/FASTQ-Parser/builds> using multiple Perl versions (5.14 to 5.28).
-
-In addition to this, every CPAN release is tested by the L<CPAN testers grid|http://matrix.cpantesters.org/?dist=FASTX-Reader>.
+The GitHub repository is tested with a L<GitHub Action|[![CI](https://github.com/telatin/FASTQ-Parser/actions/workflows/perl-test.yml/badge.svg)](https://github.com/telatin/FASTQ-Parser/actions/workflows/perl-test.yml)>.
+Every CPAN release is tested by the L<CPAN testers grid|http://matrix.cpantesters.org/?dist=FASTX-Reader>.
 
 =head1 METHODS
 
@@ -78,7 +79,7 @@ sub new {
 
     # Check if a filename was provided and not {{STDIN}}
     # uncoverable branch false
-    
+
     if (defined $self->{filename} and $self->{filename} ne '{{STDIN}}') {
       open my $initial_fh, '<', $self->{filename} or confess "Unable to read file ", $self->{filename}, "\n";
       read( $initial_fh, my $magic_byte, 4 );
@@ -107,7 +108,7 @@ sub new {
       } else {
 
 	       #close $fh;
-      	 open (my $fh,  '<:encoding(utf8)', $self->{filename}) or confess "Unable to read file ", $self->{filename}, ": ", $!, "\n";
+      	 open (my $fh,  '<:encoding(utf8):crlf', $self->{filename}) or confess "Unable to read file ", $self->{filename}, ": ", $!, "\n";
          $self->{fh} = $fh;
       }
 
@@ -121,11 +122,11 @@ sub new {
 
 
 
-    
+
     if ($self->{loadseqs}) {
       _load_seqs($self);
     }
-    
+
     return $self;
 
 }
@@ -157,51 +158,9 @@ quality if the file is FASTQ
 
 =cut
 
-# sub _Flevorin_getRead {
-#   my $self   = shift;
-#   my $fh = $self->{fh};
-
-#   return undef if (defined $self->{status} and $self->{status} == 0);
-
-#   #  my $aux = $self->{aux};
-#   my $curpos = $self->{curpos};
-#   my $return;
-#   my $seq;
-#   my $dim = -s $fh;
-
-#   return if ( $curpos == $dim);
-
-#   seek($fh, $curpos, 0);
-
-#   # Nome sequenza e commento
-#   while (<$fh>) {
-#     chomp;
-#     if (substr($_, 0, 1) eq '>' || substr($_, 0, 1) eq '@') {
-#       my ($name, $comm) = /^.(\S+)(?:\s+)(.+)/ ? ($1, $2) : /^.(\S+)/ ? ($1, '') : ('', '');
-#       $return->{name} = $name;
-#       $return->{comment} = $comm;
-#       last;
-#     }
-#   }
-
-#   # Sequenza
-#   while (<$fh>) {
-#   chomp;
-#   my $c = substr($_, 0, 1);
-#   if ($c eq '>' || $c eq '@' || $c eq '+') {
-#   last;
-#   }
-#   $self->{curpos} = tell;
-#   $seq .= $_;
-#   }
-#   $return->{seq} = $seq;
-
-#   return $return;
-# }
 
 sub getRead {
   my $self   = shift;
-  #tate $self->{line};
 
   #@<instrument>:<run number>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos>:<UMI> <read>:<is filtered>:<control number>:<index>
 

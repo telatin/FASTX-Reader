@@ -21,4 +21,6 @@ ok('ATT' eq $script->rc("AAT"), "[Helper] rev complementary done");
 my $execution = $script->run('pwd', { candie => 1});
 ok(defined $execution->{exit}, "[Run] Comand returned exit status");
 ok(defined $execution->{stdout}, "[Run] Returned STDOUT");
+
+unlink "$log_filename";
 done_testing();
