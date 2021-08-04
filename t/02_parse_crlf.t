@@ -6,8 +6,8 @@ use FASTX::Reader;
 
 # TEST: Retrieves sequences from a test FASTA file
 
-my $seq_file = "$RealBin/../data/encoding/test-lf.fa";
-my $win_file = "$RealBin/../data/encoding/test-crlf.fa";
+my $seq_file = "$RealBin/../data/encodings/test-lf.fa";
+my $win_file = "$RealBin/../data/encodings/test-crlf.fa";
 # Check required input file
 if (! -e $seq_file or ! -e $win_file) {
   print STDERR "Skip test: $seq_file not found\n";
