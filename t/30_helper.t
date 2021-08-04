@@ -5,7 +5,17 @@ use Test::More;
 use FASTX::ScriptHelper;
 use File::Temp qw/ tempfile tempdir /;
 use Data::Dumper;
-say STDERR "Requesting unpeneded temp file:";
+BEGIN {
+
+    eval {
+        require File::Spec;
+        Module->import( qw(devnull) );     # No need if you don't import any subroutines
+
+        open STDERR, '>', File::Spec->devnull();
+    };
+}
+
+#say STDERR "Requesting unpeneded temp file:";
 my (undef, $log_filename) = tempfile('HELPERTEST_XXXXXXXX', OPEN => 0);
 my %opt = (
   verbose => 1,
