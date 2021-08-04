@@ -5,7 +5,7 @@ use Carp qw(confess);
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 use File::Basename;
-$FASTX::Reader::VERSION = '1.1.0';
+$FASTX::Reader::VERSION = '1.1.2';
 require Exporter;
 our @ISA = qw(Exporter);
 #ABSTRACT: A simple module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.
@@ -79,6 +79,10 @@ sub new {
 
     # Check if a filename was provided and not {{STDIN}}
     # uncoverable branch false
+
+    if ( -d $self->{filename} ) {
+      confess "Directory provide where file was expected\n";
+    }
 
     if (defined $self->{filename} and $self->{filename} ne '{{STDIN}}') {
       open my $initial_fh, '<', $self->{filename} or confess "Unable to read file ", $self->{filename}, "\n";
