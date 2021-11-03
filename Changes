@@ -4,9 +4,10 @@ Version 0.61 has been available via BioConda
 
 1.2.1 2021-11-01
   * Fix changelog mismatching version
-  
+  * Minor fix in test "nonillumina.t"
+
 1.2.0 2021-11-01
-  * Introduction of "next()" method that returns a blessed object instead of a scalard
+  * Introduction of "next()" method that returns a blessed object instead of a scalard, test n. 21
   * Minor code improvements (perlcritic)
 
 1.1.0 2021-08-04
