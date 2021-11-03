@@ -20,6 +20,8 @@ while (my $read = $data->getIlluminaRead() ) {
 
   ok( $data->{status} == 1 ,
     "[ILLUMINA] Valid format detected (reader_status=1)");
+
+  ok( length($read->{index})==0, "Index empty: this file has no comments");
 }
 
 

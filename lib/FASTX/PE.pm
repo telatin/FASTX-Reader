@@ -208,11 +208,11 @@ sub getReads {
   }
 
   if (! defined $r1->{name} and !defined $r2->{name}) {
-    return undef;
+    return;
   } elsif (! defined $r1->{name} or !defined $r2->{name}) {
     my $r = $r1->{name} // $r2->{name};
     $self->{error} = "Premature termination, missing read mate for \"$r\"";
-    return undef;
+    return;
   }
 
   my $name_1;

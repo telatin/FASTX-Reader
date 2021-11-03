@@ -144,7 +144,7 @@ Returns the reverse complementary of a sequence
 
 =cut
 
-sub rc ($) {
+sub rc {
     my $self = undef;
     if ( ref($_[0]) eq 'FASTX::ScriptHelper' ) {
       $self = shift @_;
@@ -389,9 +389,9 @@ sub _validate_attributes {
   for my $attr (sort keys %{ $options } ) {
     confess "Invalid attribute '$attr' used calling routine '$title'\n" if (not defined ${ $hash_ref}{ $attr });
   }
-  return undef;
+  return;
 }
-sub _runCmd(@) {
+sub _runCmd {
   if ( ref($_[0]) eq 'FASTX::ScriptHelper' ) {
      shift @_;
   }

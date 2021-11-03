@@ -5,7 +5,7 @@ use Carp qw(confess);
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 use File::Basename;
-$FASTX::Reader::VERSION = '1.1.2';
+$FASTX::Reader::VERSION = '1.2.0';
 require Exporter;
 our @ISA = qw(Exporter);
 #ABSTRACT: A simple module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.
@@ -80,7 +80,7 @@ sub new {
     # Check if a filename was provided and not {{STDIN}}
     # uncoverable branch false
 
-    if ( -d $self->{filename} ) {
+    if ( defined $self->{filename} and -d $self->{filename} ) {
       confess "Directory provide where file was expected\n";
     }
 
@@ -118,6 +118,7 @@ sub new {
 
 
     } else {
+      # Filename not provided, use STDIN
       $self->{fh} = \*STDIN;
       if ($self->{loadseqs}) {
         confess("Load sequences not supported for STDIN");
@@ -169,7 +170,7 @@ sub getRead {
   #@<instrument>:<run number>:<flowcell ID>:<lane>:<tile>:<x-pos>:<y-pos>:<UMI> <read>:<is filtered>:<control number>:<index>
 
 
-  return undef if (defined $self->{status} and $self->{status} == 0);
+  return if (defined $self->{status} and $self->{status} == 0);
 
   #my $aux = $self->{aux};
   my $sequence_data;
@@ -254,6 +255,32 @@ sub getRead {
 
 }
 
+=head2 next() 
+
+Get the next sequence as a blessed object, having the same attributes as 
+the regular has provided by C<getRead()>: name, comment, seq, qual.
+The class for this object is C<FASTX::Seq> and at the moment no methods 
+are available for it.
+
+=cut
+
+sub next {
+  my $self   = shift;
+  my $class  = "FASTX::Seq";
+  my $scalar_read = $self->getRead();
+  if (not defined $scalar_read->{seq} ) {
+    return;
+  }
+  my $seq = bless {}, $class;
+  $seq->{seq}  = $scalar_read->{seq}  // '';
+  $seq->{name}   = $scalar_read->{name}   // undef;
+  $seq->{comment} = $scalar_read->{comment} // undef;
+  $seq->{qual} = $scalar_read->{qual} // undef;
+ 
+  return $seq;
+ 
+}
+
 =head2 getFastqRead()
 
 If the file is FASTQ, this method returns the same read object as I<getRead()> but with a simpler,
@@ -276,7 +303,7 @@ sub getFastqRead {
   my $self   = shift;
   my $seq_object = undef;
 
-  return undef if (defined $self->{status} and $self->{status} == 0);
+  return if (defined $self->{status} and $self->{status} == 0);
 
   $self->{status} = 1;
   my $header = readline($self->{fh});
@@ -292,7 +319,7 @@ sub getFastqRead {
       $self->{message} = "Unknown format: FASTQ truncated at " . $header . "?";
       $self->{status} = 0;
     }
-    return undef;
+    return;
   }
 
   # Fast format control: header and separator
@@ -352,7 +379,7 @@ sub getIlluminaRead {
   my $self   = shift;
   my $seq_object = undef;
 
-  return undef if (defined $self->{status} and $self->{status} == 0);
+  return if (defined $self->{status} and $self->{status} == 0);
 
   $self->{status} = 1;
   my $header = readline($self->{fh});
@@ -368,7 +395,7 @@ sub getIlluminaRead {
       $self->{message} = "Unknown format: FASTQ truncated at " . $header . "?";
       $self->{status} = 0;
     }
-    return undef;
+    return;
   }
 
   # Fast format control: header and separator
@@ -482,7 +509,7 @@ sub getFileFormat {
     }
   } else {
     #unknown format
-    return undef;
+    return;
   }
 }
 sub _load_seqs {
@@ -504,7 +531,7 @@ sub _load_seqs {
 
 
 sub _which {
-	return undef if ($^O eq 'MSWin32');
+	return if ($^O eq 'MSWin32');
 	my $has_which = eval { require File::Which; File::Which->import(); 1};
 	if ($has_which) {
 		foreach my $cmd (@_) {
@@ -516,7 +543,7 @@ sub _which {
 			return $cmd if (not $?);
 		}
 	}
-	return undef;
+	return;
 }
 =head1 ACKNOWLEDGEMENTS
 

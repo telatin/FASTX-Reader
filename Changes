@@ -2,6 +2,10 @@ This is the changelog for FASTX::Reader. Version prior to v 0.1 are preliminary 
 Some APIs *can change* with the release of the first stable release (v 1.0).
 Version 0.61 has been available via BioConda
 
+1.1.1 2021-11-01
+  * Introduction of "next()" method that returns a blessed object instead of a scalar
+  * Minor code improvments (perlcritic)
+
 1.1.0 2021-08-04
   * Support for Windows line endings (experimental)
 
