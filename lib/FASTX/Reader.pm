@@ -5,7 +5,7 @@ use Carp qw(confess);
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 use File::Basename;
-$FASTX::Reader::VERSION = '1.2.0';
+$FASTX::Reader::VERSION = '1.2.1';
 require Exporter;
 our @ISA = qw(Exporter);
 #ABSTRACT: A simple module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.
