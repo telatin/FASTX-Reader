@@ -141,6 +141,21 @@ sub rev {
     return $self;
 }
 
+
+=head2 len()
+
+Length of the sequence
+
+    my $len = $fastq->len();
+    
+=cut
+
+sub len {
+    # Update comment
+    my ($self) = @_;
+    return length($self->{seq});
+}
+
 =head2 rc()
 
 Reverse and complement the sequence.
@@ -163,5 +178,36 @@ sub rc {
 }
 
 
+=head2 asfasta()
+
+Return the sequence as a FASTA string.
+
+    my $fasta = $seq->asfasta();
+    
+=cut
+
+sub asfasta {
+    # Update comment
+    my ($self) = @_;
+    my $space = length($self->{comment}) > 0 ? " " : "";
+    return ">" . $self->{name} . $space . $self->{comment} . "\n" . $self->{seq} . "\n";
+}
+
+=head2 asfastq()
+
+Return the sequence as a FASTQ string. Will use a dummy fixed value quality
+if the sequence didnt have a quality string.
+
+    my $fasta = $seq->asfastq();
+    
+=cut
+
+sub asfastq {
+    # Update comment
+    my ($self) = @_;
+    my $space = length($self->{comment}) > 0 ? " " : "";
+    my $quality = defined $self->{qual} ? " " . $self->{qual} : "I" x length($self->{seq});
+    return "@" . $self->{name} . $space . $self->{comment} . "\n" . $self->{seq} . "\n+\n" . $quality;
+}
 
 1;

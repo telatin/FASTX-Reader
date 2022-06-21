@@ -26,14 +26,6 @@ my $rev_suffix_re = '(/2|_R?2)';
     print $seq->{name}, "\t", $seq->{seq2}, "\t", $seq->{qual2}, "\n";
   }
 
-=head1 BUILD TEST
-
-=for html <p><a href="https://travis-ci.org/telatin/FASTQ-Parser"><img src="https://travis-ci.org/telatin/FASTQ-Parser.svg?branch=master"></a></p>
-
-Each GitHub release of the module is tested by L<Travis-CI|https://travis-ci.org/telatin/FASTQ-Parser/builds> using multiple Perl versions (5.14 to 5.28).
-
-In addition to this, every CPAN release is tested by the L<CPAN testers grid|http://matrix.cpantesters.org/?dist=FASTX-Reader>.
-
 =head1 METHODS
 
 
