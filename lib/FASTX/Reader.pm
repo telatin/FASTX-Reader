@@ -6,7 +6,7 @@ use Data::Dumper;
 use PerlIO::encoding;
 $Data::Dumper::Sortkeys = 1;
 use File::Basename;
-$FASTX::Reader::VERSION = '1.4.1';
+$FASTX::Reader::VERSION = '1.5.0';
 require Exporter;
 our @ISA = qw(Exporter);
 #ABSTRACT: A simple module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.

@@ -190,7 +190,9 @@ sub asfasta {
     # Update comment
     my ($self) = @_;
     my $space = length($self->{comment}) > 0 ? " " : "";
-    return ">" . $self->{name} . $space . $self->{comment} . "\n" . $self->{seq} . "\n";
+    my $name  = $self->{name} // "sequence";
+    my $comment = length($self->{comment}) > 0 ? " " . $self->{comment} : "";
+    return ">" . $name . $comment . "\n" . $self->{seq} . "\n";
 }
 
 =head2 asfastq()
@@ -205,9 +207,10 @@ if the sequence didnt have a quality string.
 sub asfastq {
     # Update comment
     my ($self) = @_;
-    my $space = length($self->{comment}) > 0 ? " " : "";
+    my $name  = $self->{name} // "sequence";
+    my $comment = length($self->{comment}) > 0 ? " " . $self->{comment} : "";
     my $quality = defined $self->{qual} ? " " . $self->{qual} : "I" x length($self->{seq});
-    return "@" . $self->{name} . $space . $self->{comment} . "\n" . $self->{seq} . "\n+\n" . $quality;
+    return "@" . $name . $comment . "\n" . $self->{seq} . "\n+\n" . $quality;
 }
 
 1;
