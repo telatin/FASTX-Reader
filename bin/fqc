@@ -46,6 +46,11 @@ init();
 
 foreach my $input_file (@ARGV) {
   print STDERR " - Reading $input_file... " if ($opt_verbose);
+
+  if (-d "$input_file") {
+    print STDERR "[WARNING] Ignoring directory: $input_file\n";
+    next;
+  }
   $counter++;
   my $print_name = $input_file;
   my $abs_path   = File::Spec->rel2abs($input_file);

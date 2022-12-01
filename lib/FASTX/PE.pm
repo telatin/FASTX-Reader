@@ -1,5 +1,5 @@
 package FASTX::PE;
-#ABSTRACT: A Paired-End FASTQ files reader, based on FASTX::Reader.
+#ABSTRACT: Warning, Experimental Paired-End FASTQ files reader, based on FASTX::Reader.
 
 use 5.012;
 use warnings;
