@@ -26,11 +26,6 @@ use constant GZIP_SIGNATURE => pack('C3', 0x1f, 0x8b, 0x08);
 
 =head1 BUILD TEST
 
-=for html <p>
-<a href="https://github.com/telatin/FASTQ-Parser/actions/workflows/perl-test.yml" title="CI tests">
-<img src="https://github.com/telatin/FASTQ-Parser/actions/workflows/perl-test.yml/badge.svg" alt="CI Badge"></a></p>
-
-The GitHub repository is tested with a L<GitHub Action|[![CI](https://github.com/telatin/FASTQ-Parser/actions/workflows/perl-test.yml/badge.svg)](https://github.com/telatin/FASTQ-Parser/actions/workflows/perl-test.yml)>.
 Every CPAN release is tested by the L<CPAN testers grid|http://matrix.cpantesters.org/?dist=FASTX-Reader>.
 
 =head1 METHODS

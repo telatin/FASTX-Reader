@@ -1,4 +1,4 @@
-package FASTX::PE;
+package FASTX::ReaderPaired;
 #ABSTRACT: Warning, Experimental Paired-End FASTQ files reader, based on FASTX::Reader.
 
 use 5.012;
@@ -7,14 +7,14 @@ use Carp qw(confess cluck);
 use Data::Dumper;
 use FASTX::Reader;
 use File::Basename;
-$FASTX::PE::VERSION = $FASTX::Reader::VERSION;
+$FASTX::ReaderPaired::VERSION = $FASTX::Reader::VERSION;
 
 my $for_suffix_re = '(/1|_R?1)';
 my $rev_suffix_re = '(/2|_R?2)';
 
 =head1 SYNOPSIS
 
-  use FASTX::PE;
+  use FASTX::ReaderPaired;
   my $filepath = '/path/to/assembly_R1.fastq';
   # Will automatically open "assembly_R2.fastq"
   my $fq_reader = FASTX::Reader->new({
