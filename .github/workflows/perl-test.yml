@@ -22,7 +22,10 @@ jobs:
         perl: [ 'latest', '5.22', '5.14']
     name: Perl ${{ matrix.perl }} on ${{ matrix.os }}
     steps:
+    
+      
       - uses: actions/checkout@v1
+      - uses: perl-actions/install-with-cpanm@v1.4
       - name: Setup perl
         uses: jonasbn/github-action-perl-dist-zilla@0.4.0
         with:
