@@ -13,7 +13,6 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -25,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Setup perl
-        uses: shogo82148/actions-setup-perl@v1
+        uses: jonasbn/github-action-perl-dist-zilla@0.4.0
         with:
           perl-version: ${{ matrix.perl }}
       - run: perl -V
