@@ -5,10 +5,12 @@ use Carp qw(confess);
 use Data::Dumper;
 use PerlIO::encoding;
 $Data::Dumper::Sortkeys = 1;
+use FASTX::Seq;
 use File::Basename;
-$FASTX::Reader::VERSION = '1.5.1';
+$FASTX::Reader::VERSION = '1.6.1';
 require Exporter;
 our @ISA = qw(Exporter);
+
 #ABSTRACT: A simple module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.
 
 use constant GZIP_SIGNATURE => pack('C3', 0x1f, 0x8b, 0x08);
@@ -21,7 +23,7 @@ use constant GZIP_SIGNATURE => pack('C3', 0x1f, 0x8b, 0x08);
   my $fasta_reader = FASTX::Reader->new({ filename => "$filepath" });
 
   while (my $seq = $fasta_reader->getRead() ) {
-    f $seq->{name}, "\t", $seq->{seq}, "\t", $seq->{qual}, "\n";
+    print $seq->{name}, "\t", $seq->{seq}, "\t", $seq->{qual}, "\n";
   }
 
 =head1 BUILD TEST
@@ -261,18 +263,13 @@ The class for this object is C<FASTX::Seq>.
 
 sub next {
   my $self   = shift;
-  my $class  = "FASTX::Seq";
   my $scalar_read = $self->getRead();
-  if (not defined $scalar_read->{seq} ) {
-    return;
-  }
-  my $seq = bless {}, $class;
-  $seq->{seq}  = $scalar_read->{seq}  // '';
-  $seq->{name}   = $scalar_read->{name}   // undef;
-  $seq->{comment} = $scalar_read->{comment} // undef;
-  $seq->{qual} = $scalar_read->{qual} // undef;
- 
-  return $seq;
+
+
+  return FASTX::Seq->new( $scalar_read->{seq}  // '', 
+                          $scalar_read->{name}   // undef, 
+                          $scalar_read->{comment} // undef, 
+                          $scalar_read->{qual} // undef);
  
 }
 
