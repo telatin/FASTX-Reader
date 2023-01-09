@@ -7,6 +7,7 @@ use Carp qw(confess);
 use Data::Dumper;
 $Data::Dumper::Sortkeys = 1;
 use File::Basename;
+
 $FASTX::Seq::VERSION = $FASTX::Reader::VERSION;
 
 require Exporter;
