@@ -45,10 +45,14 @@ sub new {
     }
  
     my $self = bless {}, $class;
-    # Required
-    $self->{seq}  = $seq  // '';
+    
+    # Required NOT empty
+    if (not defined $seq) {
+        confess "WARNING: Sequence missing, FASTX::Seq cannot be created\n";
+    }
 
     $self->{name} = $name   // undef;
+    $self->{seq}  = $seq;
     $self->{comment} = $comment // undef;
     $self->{qual} = $qual // undef;
  

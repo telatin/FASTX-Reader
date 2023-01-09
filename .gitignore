@@ -2,3 +2,5 @@ FASTX-*
 .build
 MYMETA.json
 MYMETA.yml
+protein.txt
+*.py
