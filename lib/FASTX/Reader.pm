@@ -60,9 +60,8 @@ sub new {
     my $self = bless {} => $class;
     my $args = {};
     
-    # Named parameters
-
-    if (substr($_[0], 0, 1) eq '-') {
+    # Named parameters: undefined $_[0] will read STDIN!
+    if (defined $_[0] and substr($_[0], 0, 1) eq '-') {
       my %data = @_;
         # Try parsing
         for my $i (keys %data) {
