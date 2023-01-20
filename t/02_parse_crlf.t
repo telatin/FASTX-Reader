@@ -30,7 +30,8 @@ while (my $r = $data->getRead() ) {
 $data = FASTX::Reader->new(    -filename => "$seq_file" );
 $windata = FASTX::Reader->new( -filename => "$win_file" );
 
-my $c = 0;
+#Reset counter
+$c = 0;
 while (my $r = $data->getRead() ) {
   $c++;
   my $w = $windata->getRead();

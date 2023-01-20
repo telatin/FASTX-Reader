@@ -21,9 +21,11 @@ my $data = FASTX::Reader->new(
 
 isa_ok($data, 'FASTX::Reader', 'FASTX::Reader object created');
 my $records = $data->records();
-ok(scalar $records->@* == 7, 'Retrieved 7 records: '. scalar $records->@*);
 
-for my $record ($records->@*) {
+## Postfix dereference introduced at 5.24 (experimental before): not to use in tests
+ok(scalar @{ $records } == 7, 'Retrieved 7 records: '. scalar @{ $records });
+
+for my $record (@{ $records }) {
 	ok($record->len() > 0, 'Record has a length: ' . $record->len());
 	isa_ok($record, 'FASTX::Seq');
 	ok($record->seq() =~/^[ACGTN]+$/i, 'Record has a SEQUENCE value: ' . substr($record->seq(),0, 10));
