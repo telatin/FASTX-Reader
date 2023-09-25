@@ -7,7 +7,7 @@ use PerlIO::encoding;
 $Data::Dumper::Sortkeys = 1;
 use FASTX::Seq;
 use File::Basename;
-$FASTX::Reader::VERSION = '1.11.0';
+$FASTX::Reader::VERSION = '1.12.0';
 require Exporter;
 our @ISA = qw(Exporter);
 

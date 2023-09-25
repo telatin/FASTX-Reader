@@ -20,7 +20,9 @@ our @ISA = qw(Exporter);
 sub new {
     my $class = shift @_;
     my ($seq, $name, $comment, $qual, $offset, $line_len, $default_quality);
-
+    if (not defined $_[0]) {
+        confess "ERROR FASTX::Seq: Sequence missing, record cannot be created.\n";
+    }
     # Descriptive instantiation with parameters -param => value
     if (substr($_[0], 0, 1) eq '-') {
         my %data = @_;
