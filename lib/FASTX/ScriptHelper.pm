@@ -20,19 +20,6 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(rc fu_printfasta fu_printfastq verbose);
 our @EXPORT_OK = qw($fu_linesize $fu_verbose);  # symbols to export on request
 
-=head2 new()
-
-Initialize a new FASTX::ScriptHelper object. Notable parameters:
-
-=over 4
-
-=item I<verbose>
-
-=item I<logfile>
-
-=back
-
-=cut
 
 sub new {
 
@@ -77,13 +64,6 @@ sub new {
 }
 
 
-=head2 fu_printfasta
-
-  arguments: sequenceName, sequenceComment, sequence
-
-Prints a sequence in FASTA format.
-
-=cut
 
 sub fu_printfasta {
 
@@ -108,13 +88,6 @@ sub fu_printfasta {
 
 }
 
-=head2 fu_printfastq
-
-  arguments: sequenceName, sequenceComment, sequence, Quality
-
-Prints a sequence in FASTQ format.
-
-=cut
 
 sub fu_printfastq {
     my $self = undef;
@@ -136,13 +109,6 @@ sub fu_printfastq {
 
 }
 
-=head2 rc
-
-  arguments: sequence
-
-Returns the reverse complementary of a sequence
-
-=cut
 
 sub rc {
     my $self = undef;
@@ -156,13 +122,6 @@ sub rc {
     }
 }
 
-=head2 is_seq
-
-  arguments: sequence
-
-Returns true if the sequence only contains DNA-IUPAC chars
-
-=cut
 
 sub is_seq {
     my $self = undef;
@@ -177,13 +136,6 @@ sub is_seq {
     }
 }
 
-=head2 split_string
-
-  arguments: sequence
-
-Returns a string with newlines at a width specified by 'linesize'
-
-=cut
 
 sub split_string {
   my $self = undef;
@@ -203,13 +155,6 @@ sub split_string {
 	return $formatted;
 }
 
-=head2 verbose
-
-  arguments: message
-
-Prints to STDERR (and log) a message, only if verbose is set
-
-=cut
 
 sub verbose {
   my $self = undef;
@@ -249,13 +194,6 @@ sub verbose {
 }
 
 
-=head2 writelog
-
-  arguments: message, []
-
-Writes a message to the log file and STDERR, regardless of --verbose
-
-=cut
 
 sub writelog  {
   my $self = undef;
@@ -274,13 +212,6 @@ sub writelog  {
 
 
 
-=head2 download
-
-  arguments: url, destination
-
-Download a remote file
-
-=cut
 
 sub download  {
   my $begin_time = time();
@@ -302,15 +233,6 @@ sub download  {
   my $duration = sprintf("%.2fs", $end_time - $begin_time);
   return $file_path;
 }
-=head2 run
-
-  arguments: command, [%options]
-
-Execute a command. Options are:
-  * candie BOOL, to tolerate non zero exit
-  * logall BOOL, save to log STDOUT and STDERR
-
-=cut
 
 sub run  {
   my $begin_time = time();
@@ -356,11 +278,6 @@ sub run  {
 
 }
 
-=head2 cpu_count
-
-Returns the number of detected cores, default 1
-
-=cut
 
 sub cpu_count {
   if ( $^O =~ m/linux/i ) {
@@ -414,3 +331,103 @@ sub _runCmd {
 
 
 1;
+
+__END__
+
+=pod
+
+=encoding UTF-8
+
+=head1 NAME
+
+FASTX::ScriptHelper - Shared routines for binaries using FASTX::Reader and FASTX::PE.
+
+=head1 VERSION
+
+version 1.11.0
+
+=head2 new()
+
+Initialize a new FASTX::ScriptHelper object. Notable parameters:
+
+=over 4
+
+=item I<verbose>
+
+=item I<logfile>
+
+=back
+
+=head2 fu_printfasta
+
+  arguments: sequenceName, sequenceComment, sequence
+
+Prints a sequence in FASTA format.
+
+=head2 fu_printfastq
+
+  arguments: sequenceName, sequenceComment, sequence, Quality
+
+Prints a sequence in FASTQ format.
+
+=head2 rc
+
+  arguments: sequence
+
+Returns the reverse complementary of a sequence
+
+=head2 is_seq
+
+  arguments: sequence
+
+Returns true if the sequence only contains DNA-IUPAC chars
+
+=head2 split_string
+
+  arguments: sequence
+
+Returns a string with newlines at a width specified by 'linesize'
+
+=head2 verbose
+
+  arguments: message
+
+Prints to STDERR (and log) a message, only if verbose is set
+
+=head2 writelog
+
+  arguments: message, []
+
+Writes a message to the log file and STDERR, regardless of --verbose
+
+=head2 download
+
+  arguments: url, destination
+
+Download a remote file
+
+=head2 run
+
+  arguments: command, [%options]
+
+Execute a command. Options are:
+  * candie BOOL, to tolerate non zero exit
+  * logall BOOL, save to log STDOUT and STDERR
+
+=head2 cpu_count
+
+Returns the number of detected cores, default 1
+
+=head1 AUTHOR
+
+Andrea Telatin <andrea@telatin.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2019 by Andrea Telatin.
+
+This is free software, licensed under:
+
+  The MIT (X11) License
+
+=cut

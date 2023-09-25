@@ -7,7 +7,7 @@ use PerlIO::encoding;
 $Data::Dumper::Sortkeys = 1;
 use FASTX::Seq;
 use File::Basename;
-$FASTX::Reader::VERSION = '1.10.0';
+$FASTX::Reader::VERSION = '1.11.0';
 require Exporter;
 our @ISA = qw(Exporter);
 
@@ -15,44 +15,6 @@ our @ISA = qw(Exporter);
 
 use constant GZIP_SIGNATURE => pack('C3', 0x1f, 0x8b, 0x08);
 
-=head1 SYNOPSIS
-
-  use FASTX::Reader;
-  my $filepath = '/path/to/assembly.fastq';
-  die "Input file not found: $filepath\n" unless (-e "$filepath");
-  my $fasta_reader = FASTX::Reader->new({ filename => "$filepath" });
-
-  while (my $seq = $fasta_reader->getRead() ) {
-    print $seq->{name}, "\t", $seq->{seq}, "\t", $seq->{qual}, "\n";
-  }
-
-=head1 BUILD TEST
-
-Every CPAN release is tested by the L<CPAN testers grid|http://matrix.cpantesters.org/?dist=FASTX-Reader>.
-
-=head1 METHODS
-
-
-=head2 new()
-
-Initialize a new FASTX::Reader object passing 'filename' argument. Will open a filehandle
-stored as $object->{fh}.
-
-  my $seq_from_file = FASTX::Reader->new({ filename => "$file" });
-
-To read from STDIN either pass C<{{STDIN}}> as filename, or don't pass a filename at all:
-
-  my $seq_from_stdin = FASTX::Reader->new();
-
-The parameter C<loadseqs> will preload all sequences in a hash having the sequence
-name as key and its sequence as value (or the sequences, if passing 'seq' or 1 as value)
-
-  my $seq_from_file = FASTX::Reader->new(
-    -filename => "$file",
-    -loadseqs => 'name',  # can be "seqs" or "records"
-  });
-
-=cut
 
 sub new {
     # Instantiate object
@@ -160,51 +122,12 @@ sub new {
 
 }
 
-=head2 records() 
-
-Return the records in a single array (FASTX::Seq)
-
-  my $data = FASTX::Reader->new(
-    -filename => 'file.fa',
-    -loadseqs => 'records');
-
-  for my $i ($data->records()->@*) {
-      print $i->as_fasta() if $i->length() > 100;
-  }
-
-=cut
 
 sub records {
   my $self = shift;
   confess "No records loaded with -loadseqs => records!\n" unless $self->{loadseqs} eq 'records';
   return $self->{seqs};
 }
-=head2 getRead()
-
-Will return the next sequence in the FASTA / FASTQ file using Heng Li's implementation of the readfq() algorithm.
-The returned object has these attributes:
-
-=over 4
-
-=item I<name>
-
-header of the sequence (identifier)
-
-=item I<comment>
-
-any string after the first whitespace in the header
-
-=item I<seq>
-
-actual sequence
-
-=item I<qual>
-
-quality if the file is FASTQ
-
-=back
-
-=cut
 
 
 sub getRead {
@@ -298,13 +221,6 @@ sub getRead {
 
 }
 
-=head2 next() 
-
-Get the next sequence as a blessed object, having the same attributes as 
-the regular has provided by C<getRead()>: name, comment, seq, qual.
-The class for this object is C<FASTX::Seq>.
-
-=cut
 
 sub next {
   my $self   = shift;
@@ -317,23 +233,6 @@ sub next {
   
 }
 
-=head2 getFastqRead()
-
-If the file is FASTQ, this method returns the same read object as I<getRead()> but with a simpler,
-FASTQ-specific, parser.
-Attributes of the returned object are I<name>, I<comment>, I<seq>, I<qual> (as for I<getRead()>).
-It will alter the C<status> attribute of the reader object if the FASTQ format looks terribly wrong.
-
-  use FASTX::Reader;
-  my $filepath = '/path/to/assembly.fastq';
-  my $fasta_reader = FASTX::Reader->new({ filename => "$filepath" });
-
-  while (my $seq = $fasta_reader->getFastqRead() ) {
-    die "Error parsing $filepath: " . $fasta_reader->{message} if ($fasta_reader->{status} != 1);
-    print $seq->{name}, "\t", $seq->{seq}, "\t", $seq->{qual}, "\n";
-  }
-
-=cut
 
 sub getFastqRead {
   my $self   = shift;
@@ -392,24 +291,6 @@ sub getFastqRead {
   return $seq_object;
 }
 
-=head2 getIlluminaRead()
-
-If the file is FASTQ, this method returns the same read object as I<getRead()> but with a simpler parser.
-Attributes of the returned object are I<name>, I<comment>, I<seq>, I<qual> (as for I<getRead()>).
-In addition to this it will parse the name and comment populating these properties fromt the read name:
-C<instrument>, C<run>, C<flowcell>, C<lane>, C<tile>, C<x>, C<y>, C<umi>.
-
-If the comment is also present the following will also populated: C<read> (1 for R1, and 2 for R2),
-C<index> (barcode of the current read), C<paired_index> (barcode of the other read)
-and C<filtered> (true if the read is to be discarded, false elsewhere).
-
-It will alter the C<status> attribute of the reader object if the FASTQ format looks terribly wrong.
-
-  while (my $seq = $fasta_reader->getIlluminaRead() ) {
-    print $seq->{name}, "\t", $seq->{instrument}, ',', $seq->{index1}, "\n";
-  }
-
-=cut
 
 sub getIlluminaRead {
   my $self   = shift;
@@ -505,11 +386,6 @@ sub getIlluminaRead {
   return $seq_object;
 }
 
-=head2 getFileFormat(filename)
-
-This subroutine returns 'fasta', 'fastq' or <undef> for a given filepath (this is not a method of the instantiated object)
-
-=cut
 sub getFileFormat {
   my $self   = shift;
   my ($filename) = shift;
@@ -593,6 +469,138 @@ sub _which {
 	}
 	return;
 }
+1;
+
+__END__
+
+=pod
+
+=encoding UTF-8
+
+=head1 NAME
+
+FASTX::Reader - A simple module to parse FASTA and FASTQ files, supporting compressed files and paired-ends.
+
+=head1 VERSION
+
+version 1.11.0
+
+=head1 SYNOPSIS
+
+  use FASTX::Reader;
+  my $filepath = '/path/to/assembly.fastq';
+  die "Input file not found: $filepath\n" unless (-e "$filepath");
+  my $fasta_reader = FASTX::Reader->new({ filename => "$filepath" });
+
+  while (my $seq = $fasta_reader->getRead() ) {
+    print $seq->{name}, "\t", $seq->{seq}, "\t", $seq->{qual}, "\n";
+  }
+
+=head1 BUILD TEST
+
+Every CPAN release is tested by the L<CPAN testers grid|http://matrix.cpantesters.org/?dist=FASTX-Reader>.
+
+=head1 METHODS
+
+=head2 new()
+
+Initialize a new FASTX::Reader object passing 'filename' argument. Will open a filehandle
+stored as $object->{fh}.
+
+  my $seq_from_file = FASTX::Reader->new({ filename => "$file" });
+
+To read from STDIN either pass C<{{STDIN}}> as filename, or don't pass a filename at all:
+
+  my $seq_from_stdin = FASTX::Reader->new();
+
+The parameter C<loadseqs> will preload all sequences in a hash having the sequence
+name as key and its sequence as value (or the sequences, if passing 'seq' or 1 as value)
+
+  my $seq_from_file = FASTX::Reader->new(
+    -filename => "$file",
+    -loadseqs => 'name',  # can be "seqs" or "records"
+  });
+
+=head2 records() 
+
+Return the records in a single array (FASTX::Seq)
+
+  my $data = FASTX::Reader->new(
+    -filename => 'file.fa',
+    -loadseqs => 'records');
+
+  for my $i ($data->records()->@*) {
+      print $i->as_fasta() if $i->length() > 100;
+  }
+
+=head2 getRead()
+
+Will return the next sequence in the FASTA / FASTQ file using Heng Li's implementation of the readfq() algorithm.
+The returned object has these attributes:
+
+=over 4
+
+=item I<name>
+
+header of the sequence (identifier)
+
+=item I<comment>
+
+any string after the first whitespace in the header
+
+=item I<seq>
+
+actual sequence
+
+=item I<qual>
+
+quality if the file is FASTQ
+
+=back
+
+=head2 next() 
+
+Get the next sequence as a blessed object, having the same attributes as 
+the regular has provided by C<getRead()>: name, comment, seq, qual.
+The class for this object is C<FASTX::Seq>.
+
+=head2 getFastqRead()
+
+If the file is FASTQ, this method returns the same read object as I<getRead()> but with a simpler,
+FASTQ-specific, parser.
+Attributes of the returned object are I<name>, I<comment>, I<seq>, I<qual> (as for I<getRead()>).
+It will alter the C<status> attribute of the reader object if the FASTQ format looks terribly wrong.
+
+  use FASTX::Reader;
+  my $filepath = '/path/to/assembly.fastq';
+  my $fasta_reader = FASTX::Reader->new({ filename => "$filepath" });
+
+  while (my $seq = $fasta_reader->getFastqRead() ) {
+    die "Error parsing $filepath: " . $fasta_reader->{message} if ($fasta_reader->{status} != 1);
+    print $seq->{name}, "\t", $seq->{seq}, "\t", $seq->{qual}, "\n";
+  }
+
+=head2 getIlluminaRead()
+
+If the file is FASTQ, this method returns the same read object as I<getRead()> but with a simpler parser.
+Attributes of the returned object are I<name>, I<comment>, I<seq>, I<qual> (as for I<getRead()>).
+In addition to this it will parse the name and comment populating these properties fromt the read name:
+C<instrument>, C<run>, C<flowcell>, C<lane>, C<tile>, C<x>, C<y>, C<umi>.
+
+If the comment is also present the following will also populated: C<read> (1 for R1, and 2 for R2),
+C<index> (barcode of the current read), C<paired_index> (barcode of the other read)
+and C<filtered> (true if the read is to be discarded, false elsewhere).
+
+It will alter the C<status> attribute of the reader object if the FASTQ format looks terribly wrong.
+
+  while (my $seq = $fasta_reader->getIlluminaRead() ) {
+    print $seq->{name}, "\t", $seq->{instrument}, ',', $seq->{index1}, "\n";
+  }
+
+=head2 getFileFormat(filename)
+
+This subroutine returns 'fasta', 'fastq' or <undef> for a given filepath (this is not a method of the instantiated object)
+
 =head1 ACKNOWLEDGEMENTS
 
 =over 4
@@ -618,5 +626,16 @@ The module I would have used if it was available when I started working on this.
 
 =back
 
+=head1 AUTHOR
+
+Andrea Telatin <andrea@telatin.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2019 by Andrea Telatin.
+
+This is free software, licensed under:
+
+  The MIT (X11) License
+
 =cut
-1;

@@ -26,4 +26,4 @@ jobs:
         run: |
           dzil authordeps --missing | cpanm --notest
           dzil listdeps --author --missing | cpanm --notest
-          dzil test --author --release --verbose
+          dzil test --author --verbose

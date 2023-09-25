@@ -12,47 +12,6 @@ $FASTX::ReaderPaired::VERSION = $FASTX::Reader::VERSION;
 my $for_suffix_re = '(/1|_R?1)';
 my $rev_suffix_re = '(/2|_R?2)';
 
-=head1 SYNOPSIS
-
-  use FASTX::ReaderPaired;
-  my $filepath = '/path/to/assembly_R1.fastq';
-  # Will automatically open "assembly_R2.fastq"
-  my $fq_reader = FASTX::Reader->new({
-    filename => "$filepath",
-  });
-
-  while (my $seq = $fasta_reader->getRead() ) {
-    print $seq->{name}, "\t", $seq->{seq1}, "\t", $seq->{qual1}, "\n";
-    print $seq->{name}, "\t", $seq->{seq2}, "\t", $seq->{qual2}, "\n";
-  }
-
-=head1 METHODS
-
-
-=head2 new()
-
-Initialize a new FASTX::Reader object passing 'B<filename>' argument for the first pairend,
-and optionally 'B<rev>' for the second (otherwise can be guessed substituting 'R1' with 'R2' and
-'_1.' with '_2.')
-
-  my $pairend = FASTX::Reader->new({
-      filename => "$file_R1",
-      rev      => "$file_R2"
-  });
-
-To read from STDIN either pass C<{{STDIN}}> as filename, or don't pass a filename at all.
-In this case the module will expect an interleaved pairedend file.
-
-  my $seq_from_stdin = FASTX::Reader->new();
-
-If a '_R2' file is not found, the module will try parsing as B<interleaved>. This can be forced with:
-
-  my $seq_from_file = FASTX::Reader->new({
-    filename    => "$file",
-    interleaved => 1,
-  });
-
-=cut
 
 sub new {
 
@@ -155,32 +114,6 @@ sub new {
     return $object;
 }
 
-=head2 getReads()
-
-Will return the next sequences in the FASTA / FASTQ file.
-The returned object has these attributes:
-
-=over 4
-
-=item I<name>
-
-header of the sequence (identifier)
-
-=item I<comment1> and I<comment2>
-
-any string after the first whitespace in the header, for the first and second paired read respectively.
-
-=item I<seq1> and I<seq2>
-
-DNA sequence for the first and the second pair, respectively
-
-=item I<qual1> and I<qual2>
-
-quality for the first and the second pair, respectively
-
-=back
-
-=cut
 
 
 sub getReads {
@@ -247,6 +180,93 @@ sub getReads {
 
 
 
+
+sub _rc {
+  my $sequence = shift @_;
+  $sequence = reverse($sequence);
+  $sequence =~tr/ACGTacgt/TGCAtgca/;
+  return $sequence;
+}
+1;
+
+__END__
+
+=pod
+
+=encoding UTF-8
+
+=head1 NAME
+
+FASTX::ReaderPaired - Warning, Experimental Paired-End FASTQ files reader, based on FASTX::Reader.
+
+=head1 VERSION
+
+version 1.11.0
+
+=head1 SYNOPSIS
+
+  use FASTX::ReaderPaired;
+  my $filepath = '/path/to/assembly_R1.fastq';
+  # Will automatically open "assembly_R2.fastq"
+  my $fq_reader = FASTX::Reader->new({
+    filename => "$filepath",
+  });
+
+  while (my $seq = $fasta_reader->getRead() ) {
+    print $seq->{name}, "\t", $seq->{seq1}, "\t", $seq->{qual1}, "\n";
+    print $seq->{name}, "\t", $seq->{seq2}, "\t", $seq->{qual2}, "\n";
+  }
+
+=head1 METHODS
+
+=head2 new()
+
+Initialize a new FASTX::Reader object passing 'B<filename>' argument for the first pairend,
+and optionally 'B<rev>' for the second (otherwise can be guessed substituting 'R1' with 'R2' and
+'_1.' with '_2.')
+
+  my $pairend = FASTX::Reader->new({
+      filename => "$file_R1",
+      rev      => "$file_R2"
+  });
+
+To read from STDIN either pass C<{{STDIN}}> as filename, or don't pass a filename at all.
+In this case the module will expect an interleaved pairedend file.
+
+  my $seq_from_stdin = FASTX::Reader->new();
+
+If a '_R2' file is not found, the module will try parsing as B<interleaved>. This can be forced with:
+
+  my $seq_from_file = FASTX::Reader->new({
+    filename    => "$file",
+    interleaved => 1,
+  });
+
+=head2 getReads()
+
+Will return the next sequences in the FASTA / FASTQ file.
+The returned object has these attributes:
+
+=over 4
+
+=item I<name>
+
+header of the sequence (identifier)
+
+=item I<comment1> and I<comment2>
+
+any string after the first whitespace in the header, for the first and second paired read respectively.
+
+=item I<seq1> and I<seq2>
+
+DNA sequence for the first and the second pair, respectively
+
+=item I<qual1> and I<qual2>
+
+quality for the first and the second pair, respectively
+
+=back
+
 =head1 SEE ALSO
 
 =over 4
@@ -257,12 +277,16 @@ The FASTA/FASTQ parser this module is based on.
 
 =back
 
-=cut
+=head1 AUTHOR
 
-sub _rc {
-  my $sequence = shift @_;
-  $sequence = reverse($sequence);
-  $sequence =~tr/ACGTacgt/TGCAtgca/;
-  return $sequence;
-}
-1;
+Andrea Telatin <andrea@telatin.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2019 by Andrea Telatin.
+
+This is free software, licensed under:
+
+  The MIT (X11) License
+
+=cut
